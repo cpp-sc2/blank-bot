@@ -4,7 +4,7 @@
 Starter bot for StarCraft II with integrated cpp-sc2.
 
 ## Support
-Feel free to post questions on the unofficial Starcraft II AI Discord server. [Invite Link](https://discordapp.com/invite/Emm5Ztz)
+Feel free to post questions on the unofficial StarCraft II AI Discord server. [Invite Link](https://discordapp.com/invite/Emm5Ztz)
 
 ## Build requirements
 1. Download (the password is iagreetotheeula) at least one of the following map packs:
@@ -107,6 +107,17 @@ always behind the Windows version. It is possible by specifying the game version
 ```bash
 $ cmake -DSC2_VERSION=4.10.0 ../
 ```
+
+### AIArena ladder build
+To compile a bot capable to play on [the AIArena ladder](https://aiarena.net), configure the project in the following way:
+```bash
+$ cmake -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0 ../
+```
+
+## Troubleshooting
+If you see that some of cmake options don't take effect
+(e.g. project was configured with `cmake -DBUILD_FOR_LADDER=ON ../` and a bit later with `cmake ../`)
+remove the `build` folder or the `CMakeCache.txt` file.
 
 ## License
 Copyright (c) 2021 Alexander Kurbatov
