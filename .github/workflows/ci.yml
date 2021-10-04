@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-    path-ignore:
+    paths-ignore:
       - 'LICENSE'
       - '**.md'
   pull_request:
-    path-ignore:
+    paths-ignore:
       - 'LICENSE'
       - '**.md'
 
