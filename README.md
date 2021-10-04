@@ -1,5 +1,7 @@
 # blank-bot
 
+[![Build](https://github.com/cpp-sc2/blank-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/cpp-sc2/blank-bot/actions/workflows/ci.yml)
+
 ## About
 Starter bot for StarCraft II with integrated cpp-sc2.
 
