@@ -18,6 +18,12 @@ include_directories(SYSTEM
 
 link_directories(${PROJECT_BINARY_DIR}/contrib/cpp-sc2/bin)
 
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /EHsc")
+else ()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
+endif ()
+
 # Create the executable.
 add_executable(BlankBot ${BOT_SOURCES})
 target_link_libraries(BlankBot
