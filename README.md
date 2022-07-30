@@ -9,10 +9,7 @@ Starter bot for StarCraft II with integrated cpp-sc2.
 Feel free to post questions on the unofficial StarCraft II AI Discord server. [Invite Link](https://discordapp.com/invite/Emm5Ztz)
 
 ## Build requirements
-1. Download (the password is iagreetotheeula) at least one of the following map packs:
-  * [Ladder 2019 Season 1](http://blzdistsc2-a.akamaihd.net/MapPacks/Ladder2019Season1.zip)
-  * [Ladder 2019 Season 2](http://blzdistsc2-a.akamaihd.net/MapPacks/Ladder2019Season2.zip)
-  * [Ladder 2019 Season 3](http://blzdistsc2-a.akamaihd.net/MapPacks/Ladder2019Season3.zip)
+1. Download the [actual map pack](https://aiarena.net/wiki/maps/).
 
 2. Put the downloaded maps into the Maps folder (create it if the folder doesn't exist):
   * Windows: C:\Program Files\StarCraft II\Maps
