@@ -26,19 +26,17 @@ endif ()
 
 # Create the executable.
 add_executable(BlankBot ${BOT_SOURCES})
-target_link_libraries(BlankBot
-    sc2api sc2lib sc2utils sc2protocol civetweb libprotobuf
-)
+target_link_libraries(BlankBot PRIVATE cpp_sc2)
 
 if (MINGW)
-    target_link_libraries(BlankBot ssp)
+    target_link_libraries(BlankBot PRIVATE ssp)
 endif ()
 
 if (APPLE)
-    target_link_libraries(BlankBot "-framework Carbon")
+    target_link_libraries(BlankBot PRIVATE "-framework Carbon")
 endif ()
 
 # Linux specific.
 if (UNIX AND NOT APPLE)
-    target_link_libraries(BlankBot pthread dl)
+    target_link_libraries(BlankBot PRIVATE pthread dl)
 endif ()
