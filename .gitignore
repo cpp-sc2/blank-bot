@@ -1,8 +1,11 @@
 # OS X trash
 .DS_Store
 
-# Build sandbox.
+# Build sandbox
 build/
+
+# Clangd cache
+.cache/
 
 # IDEs
 .vscode/
