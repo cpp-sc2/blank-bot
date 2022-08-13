@@ -119,6 +119,6 @@ If you see that some of cmake options don't take effect
 remove the `build` folder or the `CMakeCache.txt` file.
 
 ## License
-Copyright (c) 2021 Alexander Kurbatov
+Copyright (c) 2021-2022 Alexander Kurbatov
 
 Licensed under the [MIT license](LICENSE).
