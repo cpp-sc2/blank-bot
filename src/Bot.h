@@ -9,7 +9,7 @@
 // The main bot class.
 struct Bot: sc2::Agent
 {
-    explicit Bot();
+    Bot() = default;
 
  private:
     void OnGameStart() final;

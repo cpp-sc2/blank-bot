@@ -9,9 +9,6 @@
 
 #include <iostream>
 
-Bot::Bot()
-{}
-
 void Bot::OnGameStart()
 {
     std::cout << "New game started!" << std::endl;
