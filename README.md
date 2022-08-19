@@ -20,7 +20,7 @@ Feel free to post questions on the unofficial StarCraft II AI Discord server. [I
 
 4. A compiler with C++14 support.
 
-5. Windows: Download and install Visual Studio ([2019](https://www.visualstudio.com/downloads/) or older).
+5. Windows: Download and install Visual Studio ([2017](https://www.visualstudio.com/downloads/) or newer).
 
 6. Linux: Install 'gcc-c++'.
 
@@ -36,21 +36,19 @@ Feel free to post questions on the unofficial StarCraft II AI Discord server. [I
 $ git clone --recursive git@github.com:cpp-sc2/blank-bot.git
 $ cd blank-bot
 
-:: Create build directory.
-$ mkdir build
-$ cd build
-
-:: Create Visual Studio project files.
+:: Create Visual Studio project files in the directory "build"
+:: For Visual Studio 2022
+$ cmake -B build -G "Visual Studio 17 2022"
 :: For Visual Studio 2019
-$ cmake ../ -G "Visual Studio 16 2019"
+$ cmake -B build -G "Visual Studio 16 2019"
 :: For Visual Studio 2017
-$ cmake ../ -G "Visual Studio 15 2017 Win64"
+$ cmake -B build -G "Visual Studio 15 2017 Win64"
 
 :: Build the project using Visual Studio.
-$ start BlankBot.sln
+$ start build\BlankBot.sln
 
 :: Launch the bot with the specified path to a SC2 map, e.g.
-$ bin\Debug\BlankBot.exe Ladder2019Season3/AcropolisLE.SC2Map
+$ build\bin\Debug\BlankBot.exe Ladder2019Season3/AcropolisLE.SC2Map
 ```
 
 ### Linux (command line)
@@ -58,18 +56,18 @@ $ bin\Debug\BlankBot.exe Ladder2019Season3/AcropolisLE.SC2Map
 # Get the project.
 $ git clone --recursive git@github.com:cpp-sc2/blank-bot.git && cd blank-bot
 
-# Create build directory.
-$ mkdir build && cd build
-
-# Generate a Makefile.
-# Use 'cmake -DCMAKE_BUILD_TYPE=Debug ../' if debuginfo is needed
-$ cmake ../
+# Generate CMake build tree
+# Options:
+#   -DBUILD_FOR_LADDER=ON/OFF (default = OFF)
+#   -DCMAKE_BUILD_TYPE=DEBUG/RELEASE (default = DEBUG)
+#   -DSC2_VERSION=SC2.VERSION.NUMBER (default assumes latest, see section on game client version)
+$ cmake -B build
 
 # Build the project.
-$ VERBOSE=1 cmake --build . --parallel
+$ cmake --build build --parallel --verbose
 
 # Launch the bot with the specified absolute path to a SC2 map, e.g.
-$ ./bin/BlankBot "/home/alkurbatov/Ladder2019Season3/AcropolisLE.SC2Map"
+$ ./build/bin/BlankBot "/home/alkurbatov/Ladder2019Season3/AcropolisLE.SC2Map"
 ```
 
 ### OS X (Xcode)
@@ -77,18 +75,18 @@ $ ./bin/BlankBot "/home/alkurbatov/Ladder2019Season3/AcropolisLE.SC2Map"
 # Get the project.
 $ git clone --recursive git@github.com:cpp-sc2/blank-bot.git && cd blank-bot
 
-# Create build directory.
-$ mkdir build && cd build
-
-# Generate a Makefile.
-# Use 'cmake -DCMAKE_BUILD_TYPE=Debug ../' if debuginfo is needed
-$ cmake ../ -G Xcode
+# Generate CMake build tree
+# Options:
+#   -DBUILD_FOR_LADDER=ON/OFF (default = OFF)
+#   -DCMAKE_BUILD_TYPE=DEBUG/RELEASE (default = RELEASE)
+#   -DSC2_VERSION=SC2.VERSION.NUMBER (default assumes latest, see section on game client version)
+$ cmake -B build -G Xcode
 
 # Build the project using Xcode.
-$ open BlankBot.xcodeproj
+$ open build/BlankBot.xcodeproj
 
 # Launch the bot with the specified path to a SC2 map, e.g.
-$ ./bin/BlankBot "Ladder2019Season3/AcropolisLE.SC2Map"
+$ ./build/bin/BlankBot "Ladder2019Season3/AcropolisLE.SC2Map"
 ```
 
 ## Additional options
@@ -104,19 +102,37 @@ Target SC2 version: 5.0.5
 However, sometimes one may need to compile with an older version of the game, e.g. to play with a Linux build which is
 always behind the Windows version. It is possible by specifying the game version manually, e.g.:
 ```bash
-$ cmake -DSC2_VERSION=4.10.0 ../
+$ cmake -DSC2_VERSION=4.10.0
 ```
 
 ### AIArena ladder build
 To compile a bot capable to play on [the AIArena ladder](https://aiarena.net), configure the project in the following way:
 ```bash
-$ cmake -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0 ../
+$ cmake -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0
+```
+
+## Managing CMake dependencies
+
+`BlankBot` uses the CMake `FetchContent` module to manage and collect dependencies. To use a version of `cpp-sc2` outside of the pinned commit, modify the `GIT_REPOSITORY` and/or the `GIT_TAG` in `cmake/cpp_sc2.cmake`:
+```
+...
+FetchContent_Declare(
+    cpp_sc2
+    GIT_REPOSITORY <target-cpp-sc2-git-rep>
+    GIT_TAG <git-commit-hash>
+)
+FetchContent_MakeAvailable(cpp_sc2)
+...
+```
+With the updated configuration, re-run the build configuration and the dependency will be updated to the new configuration:
+```
+$ cmake -B build
 ```
 
 ## Troubleshooting
 If you see that some of cmake options don't take effect
-(e.g. project was configured with `cmake -DBUILD_FOR_LADDER=ON ../` and a bit later with `cmake ../`)
-remove the `build` folder or the `CMakeCache.txt` file.
+(e.g. project was configured with `cmake -DBUILD_FOR_LADDER=ON` and a bit later with `cmake`)
+remove the `build` folder or the `CMakeCache.txt` file, or explicitly re-specify the desired default behavior (e.g. `cmake -DBUILD_FOR_LADDER=OFF`).
 
 ## License
 Copyright (c) 2021-2022 Alexander Kurbatov
