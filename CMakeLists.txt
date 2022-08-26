@@ -4,6 +4,19 @@
 
 cmake_minimum_required(VERSION 3.15)
 
+# Skip generating proto files with Protobuf compiler and use prebuilt files
+# Will still build Protobuf as libprotobuf is required for linking
+option(WSL2_CROSS_COMPILE "Building on WSL2 for Windows" OFF)
+
+# Only valid OS configuration should be in WSL2 context
+# Should not work wtih WIN32, APPLE, etc.
+if (WSL2_CROSS_COMPILE AND UNIX AND NOT APPLE)
+    set(CMAKE_TOOLCHAIN_FILE cmake/toolchain/x86-64-w64-mingw32.cmake)
+elseif (WSL2_CROSS_COMPILE)
+    message(FATAL_ERROR "Invalid environment.\
+                        WSL2_CROSS_COMPILE=ON for WSL only")
+endif ()
+
 project(BlankBot)
 
 include(FetchContent)

@@ -12,7 +12,7 @@ set(BUILD_SC2_RENDERER OFF CACHE INTERNAL "" FORCE)
 FetchContent_Declare(
     cpp_sc2
     GIT_REPOSITORY https://github.com/cpp-sc2/cpp-sc2.git
-    GIT_TAG 60befd4786d27f71f11a69796af87b7c23b5e7aa
+    GIT_TAG 9e38201d175c43d7aed9b151c59f72ab282e1b88
 )
 FetchContent_MakeAvailable(cpp_sc2)
 
