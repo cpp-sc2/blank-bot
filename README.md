@@ -57,10 +57,6 @@ $ build\bin\Debug\BlankBot.exe Ladder2019Season3/AcropolisLE.SC2Map
 $ git clone --recursive git@github.com:cpp-sc2/blank-bot.git && cd blank-bot
 
 # Generate CMake build tree
-# Options:
-#   -DBUILD_FOR_LADDER=ON/OFF (default = OFF)
-#   -DCMAKE_BUILD_TYPE=DEBUG/RELEASE (default = DEBUG)
-#   -DSC2_VERSION=SC2.VERSION.NUMBER (default assumes latest, see section on game client version)
 $ cmake -B build
 
 # Build the project.
@@ -76,10 +72,6 @@ $ ./build/bin/BlankBot "/home/alkurbatov/Ladder2019Season3/AcropolisLE.SC2Map"
 $ git clone --recursive git@github.com:cpp-sc2/blank-bot.git && cd blank-bot
 
 # Generate CMake build tree
-# Options:
-#   -DBUILD_FOR_LADDER=ON/OFF (default = OFF)
-#   -DCMAKE_BUILD_TYPE=DEBUG/RELEASE (default = RELEASE)
-#   -DSC2_VERSION=SC2.VERSION.NUMBER (default assumes latest, see section on game client version)
 $ cmake -B build -G Xcode
 
 # Build the project using Xcode.
@@ -91,10 +83,14 @@ $ ./build/bin/BlankBot "Ladder2019Season3/AcropolisLE.SC2Map"
 
 ## Additional options
 
+### WSL2 Support
+
+Cross compiling for Windows under WSL2 is supported through `cpp-sc2`. See the `cpp-sc2` [documentation](https://github.com/cpp-sc2/cpp-sc2/blob/master/docs/building.md#wsl2-support) for build requirements. The build flag remains the same, setting `-DWSL_CROSS_COMPILE=ON`.
+
 ### Game client version
 By default, the API assumes the latest version of the game client. The assumed version can be found in cmake's output, e.g.:
 ```bash
-$ cmake ../ | grep 'SC2 version'
+$ cmake -B build grep 'SC2 version'
 Target SC2 version: 5.0.5
 ...
 ```
@@ -102,13 +98,13 @@ Target SC2 version: 5.0.5
 However, sometimes one may need to compile with an older version of the game, e.g. to play with a Linux build which is
 always behind the Windows version. It is possible by specifying the game version manually, e.g.:
 ```bash
-$ cmake -DSC2_VERSION=4.10.0
+$ cmake -B build -DSC2_VERSION=4.10.0
 ```
 
 ### AIArena ladder build
 To compile a bot capable to play on [the AIArena ladder](https://aiarena.net), configure the project in the following way:
 ```bash
-$ cmake -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0
+$ cmake -B build -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0
 ```
 
 ## Managing CMake dependencies
@@ -131,8 +127,8 @@ $ cmake -B build
 
 ## Troubleshooting
 If you see that some of cmake options don't take effect
-(e.g. project was configured with `cmake -DBUILD_FOR_LADDER=ON` and a bit later with `cmake`)
-remove the `build` folder or the `CMakeCache.txt` file, or explicitly re-specify the desired default behavior (e.g. `cmake -DBUILD_FOR_LADDER=OFF`).
+(e.g. project was configured with `cmake -B build -DBUILD_FOR_LADDER=ON` and a bit later with `cmake -B build`)
+remove the `build` folder or the `CMakeCache.txt` file, or explicitly re-specify the desired default behavior (e.g. `cmake -B build -DBUILD_FOR_LADDER=OFF`).
 
 ## License
 Copyright (c) 2021-2022 Alexander Kurbatov
