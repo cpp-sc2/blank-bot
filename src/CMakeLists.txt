@@ -16,7 +16,7 @@ if (MSVC)
     target_compile_options(BlankBot PRIVATE /W4 /EHsc)
 else ()
     target_compile_options(BlankBot PRIVATE -Wall -Wextra -pedantic)
-endif()
+endif ()
 
 target_link_libraries(BlankBot PRIVATE cpp_sc2)
 
@@ -24,6 +24,7 @@ if (MINGW)
     target_link_libraries(BlankBot PRIVATE ssp)
 elseif (APPLE)
     target_link_libraries(BlankBot PRIVATE "-framework Carbon")
-elseif (UNIT AND NOT APPLE)
+# Building on Linux
+elseif (UNIX AND NOT APPLE)
     target_link_libraries(BlankBot PRIVATE pthread dl)
 endif ()
