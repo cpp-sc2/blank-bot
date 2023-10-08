@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021-2022 Alexander Kurbatov
+// Copyright (c) 2021-2023 Alexander Kurbatov
 
 #include "Bot.h"
 
