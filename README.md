@@ -33,16 +33,12 @@ Feel free to post questions on the unofficial StarCraft II AI Discord server. [I
 ### Windows (Visual Studio)
 ```bat
 :: Get the project.
-$ git clone --recursive git@github.com:cpp-sc2/blank-bot.git
+$ git clone git@github.com:cpp-sc2/blank-bot.git
 $ cd blank-bot
 
-:: Create Visual Studio project files in the directory "build"
+:: Create Visual Studio project files in the directory "build".
 :: For Visual Studio 2022
 $ cmake -B build -G "Visual Studio 17 2022"
-:: For Visual Studio 2019
-$ cmake -B build -G "Visual Studio 16 2019"
-:: For Visual Studio 2017
-$ cmake -B build -G "Visual Studio 15 2017 Win64"
 
 :: Build the project using Visual Studio.
 $ start build\BlankBot.sln
@@ -54,9 +50,9 @@ $ build\bin\Debug\BlankBot.exe Ladder2019Season3/AcropolisLE.SC2Map
 ### Linux (command line)
 ```bash
 # Get the project.
-$ git clone --recursive git@github.com:cpp-sc2/blank-bot.git && cd blank-bot
+$ git clone git@github.com:cpp-sc2/blank-bot.git && cd blank-bot
 
-# Generate CMake build tree
+# Generate CMake build tree.
 $ cmake -B build
 
 # Build the project.
@@ -69,9 +65,9 @@ $ ./build/bin/BlankBot "/home/alkurbatov/Ladder2019Season3/AcropolisLE.SC2Map"
 ### OS X (Xcode)
 ```bash
 # Get the project.
-$ git clone --recursive git@github.com:cpp-sc2/blank-bot.git && cd blank-bot
+$ git clone git@github.com:cpp-sc2/blank-bot.git && cd blank-bot
 
-# Generate CMake build tree
+# Generate CMake build tree.
 $ cmake -B build -G Xcode
 
 # Build the project using Xcode.
