@@ -1,3 +1,0 @@
-[submodule "contrib/cpp-sc2"]
-	path = contrib/cpp-sc2
-	url = git@github.com:cpp-sc2/cpp-sc2.git
