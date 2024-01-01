@@ -127,6 +127,6 @@ If you see that some of cmake options don't take effect
 remove the `build` folder or the `CMakeCache.txt` file, or explicitly re-specify the desired default behavior (e.g. `cmake -B build -DBUILD_FOR_LADDER=OFF`).
 
 ## License
-Copyright (c) 2021-2023 Alexander Kurbatov
+Copyright (c) 2021-2024 Alexander Kurbatov
 
 Licensed under the [MIT license](LICENSE).

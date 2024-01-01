@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2021-2023 Alexander Kurbatov
+# Copyright (c) 2021-2024 Alexander Kurbatov
 
 cmake_minimum_required(VERSION 3.15)
 
