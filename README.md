@@ -18,7 +18,7 @@ Feel free to post questions on the unofficial StarCraft II AI Discord server. [I
 
 3. Download and install [CMake](https://cmake.org/download/).
 
-4. A compiler with C++14 support.
+4. A compiler with C++17 support.
 
 5. Windows: Download and install Visual Studio ([2017](https://www.visualstudio.com/downloads/) or newer).
 
