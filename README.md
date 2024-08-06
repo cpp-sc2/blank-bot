@@ -147,7 +147,7 @@ For building for Windows under WSL2, see [WSL2 Support](#wsl2-support).
 
 ### WSL2 Support
 
-Cross compiling for Windows under WSL2 is supported through `cpp-sc2`. See the `cpp-sc2` [documentation](https://github.com/cpp-sc2/cpp-sc2/blob/master/docs/building.md#wsl2-support) for build requirements. The build flag remains the same, setting `-DWSL_CROSS_COMPILE=ON`.
+Cross compiling for Windows under WSL2 is supported through `cpp-sc2`. See the `cpp-sc2` [documentation](https://github.com/cpp-sc2/cpp-sc2/blob/master/docs/building.md#wsl2-support) for build requirements. The build flag remains the same, setting `-DWSL2_CROSS_COMPILE=ON`.
 
 ### Game client version
 By default, the API assumes the latest version of the game client. The assumed version can be found in cmake's output, e.g.:
