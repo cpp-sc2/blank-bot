@@ -3,8 +3,7 @@
 # Copyright (c) 2021-2024 Alexander Kurbatov
 
 set(bot_sources
-    main.cpp
-    Bot.cpp)
+    main.cpp)
 
 add_executable(BlankBot ${bot_sources})
 
