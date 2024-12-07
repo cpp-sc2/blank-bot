@@ -254,6 +254,69 @@ public:
         }
     }
 
+    void displayEnemyDamageGrid() {
+        GameInfo game_info = Observation()->GetGameInfo();
+
+        int mapWidth = game_info.width;
+        int mapHeight = game_info.height;
+
+        Point2D center = Observation()->GetCameraPos();
+        int wS = int(center.x) - 10;
+        if (wS < 0)
+            wS = 0;
+        int hS = int(center.y) - 5;
+        if (hS < 0)
+            hS = 0;
+        int wE = int(center.x) + 11;
+        if (wE > mapWidth)
+            wE = mapWidth;
+        int hE = int(center.y) + 14;
+        if (hE > mapHeight)
+            hE = mapHeight;
+
+        int fontSize = 8;
+
+        #define BOX_BORDER_S 0.002
+
+        for (float w = wS; w < wE; w += blockSize) {
+            for (float h = hS; h < hE; h += blockSize) {
+                Point2D p(w, h);
+                float boxHeight = 0;
+                Color c(255, 255, 255);
+
+                // for (auto loc : path) {
+                //     if (loc.x == w && loc.y == h) {
+                //         c = Color(120, 23, 90);
+                //         break;
+                //     }
+                // }
+
+                if (damageNetEnemy(p).ground != 0 || damageNetEnemy(p).air != 0) {
+                    uint8_t r = (damageNetEnemy(p).ground * 2);
+                    uint8_t b = (damageNetEnemy(p).air * 2);
+                    //printf("col %d %d\n", r, b);
+                    c = {r, 0, b};
+                }
+
+                if (0 || !(c.r == 255 && c.g == 255 && c.b == 255)) {
+                    float height = Observation()->TerrainHeight(Point2D{w+0.5F, h+0.5F});
+
+                    Debug()->DebugBoxOut(Point3D(w + BOX_BORDER_S, h + BOX_BORDER_S, height + 0.01),
+                        Point3D(w + blockSize - BOX_BORDER_S, h + blockSize - BOX_BORDER_S, height - 0.01), c);
+                #if MICRO_TEST
+                    Debug()->DebugTextOut(strprintf("%d, %d", w, h),
+                        Point3D(w + BOX_BORDER_S, h + 0.2 + BOX_BORDER_S, height + 0.1),
+                        Color(200, 90, 15), 4);
+                #endif
+                    /*std::string cs = imRef(display, w, h);
+                    float disp = cs.length() * 0.0667 * fontSize / 15;
+                    Debug()->DebugTextOut(cs, Point3D(w + 0.5 - disp, h + 0.5, height + 0.1 + displace),
+                                            Color(200, 190, 115), fontSize);*/
+                }
+            }
+        }
+    }
+
     void listUnitWraps() {
         string tot = "UNITS:\n";
         for (auto it = UnitManager::units.begin(); it != UnitManager::units.end(); it++) {
@@ -498,6 +561,15 @@ public:
         Aux::influenceMapEnemy = new map2d<int8_t>(mapWidth, mapHeight, true);
         path_zhang_suen = new map2d<int8_t>(mapWidth, mapHeight, true);
 
+        UnitManager::enemyDamageNet = new map2d<DamageLocation>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
+
+        //UnitManager::enemyDamageNetGround = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
+        //UnitManager::enemyDamageNetGroundLight = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
+        //UnitManager::enemyDamageNetGroundArmored = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
+        //UnitManager::enemyDamageNetAir = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
+        //UnitManager::enemyDamageNetAirLight = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
+        //UnitManager::enemyDamageNetAirArmored = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
+
         SpacialHash::initGrid(this);
         SpacialHash::initGridEnemy(this);
 
@@ -625,7 +697,10 @@ public:
                 new Stalker(unit);
             } else if (unit->unit_type == UNIT_TYPEID::PROTOSS_OBSERVER) {
                 new ObserverEye(unit);
-            } else {
+            } else if (unit->unit_type == UNIT_TYPEID::PROTOSS_ZEALOT) {
+                new Zealot(unit);
+            }
+            else {
                 new ArmyUnit(unit);
             }
         } else{
@@ -892,6 +967,16 @@ public:
                 Macro::addBuilding(ABILITY_ID::BUILD_PYLON, {-1, -1});
                 Macro::addBuilding(ABILITY_ID::BUILD_PYLON, {-1, -1});
                 Macro::addBuilding(ABILITY_ID::BUILD_PYLON, {-1, -1});
+
+                Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_ZEALOT);
+                Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_ZEALOT);
+                Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_ZEALOT);
+                Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_ZEALOT);
+                Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_ZEALOT);
+                Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_ZEALOT);
+                Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_ZEALOT);
+                Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_ZEALOT);
+                Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_ZEALOT);
             
                 Macro::addAction(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, ABILITY_ID::TRAIN_WARPPRISM);
             }
@@ -926,9 +1011,82 @@ public:
 
         onStepProfiler.midLog("DT");
 
+        for (int i = 0; i < UnitManager::enemyDamageNet->width(); i++) {
+            for (int j = 0; j < UnitManager::enemyDamageNet->height(); j++) {
+                imRef(UnitManager::enemyDamageNet, i, j) = { 0.0,0.0,0.0,0.0,0.0,0.0 };
+            }
+        }
+
+        //for (int i = 0; i < UnitManager::enemyDamageNetGround->width(); i++) {
+        //    for (int j = 0; j < UnitManager::enemyDamageNetGround->height(); j++) {
+        //        imRef(UnitManager::enemyDamageNetGround, i, j) = 0;
+        //        imRef(UnitManager::enemyDamageNetGroundLight, i, j) = 0;
+        //        imRef(UnitManager::enemyDamageNetGroundArmored, i, j) = 0;
+        //        imRef(UnitManager::enemyDamageNetAir, i, j) = 0;
+        //        imRef(UnitManager::enemyDamageNetAirLight, i, j) = 0;
+        //        imRef(UnitManager::enemyDamageNetAirArmored, i, j) = 0;
+        //    }
+        //}
+
+        //UnitManager::enemyDamageNetGround->init(0);
+        //UnitManager::enemyDamageNetGroundLight->init(0);
+        //UnitManager::enemyDamageNetGroundArmored->init(0);
+        //UnitManager::enemyDamageNetAir->init(0);
+        //UnitManager::enemyDamageNetAirLight->init(0);
+        //UnitManager::enemyDamageNetAirArmored->init(0);
+
+        for (auto it = UnitManager::enemies.begin(); it != UnitManager::enemies.end(); it++) {
+            for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+                std::vector<Weapon> weapons = Aux::getStats((*it2)->type, this).weapons;
+                //TODO:
+                // add abilities, oracle, baneling
+                // add psi storm (more damage the more time it has left, prioritzed more since its constant dmag)
+                // add helion line, lurker line
+                for (Weapon w : weapons) {
+                    DamageLocation d = { 0,0,0,0,0,0 };
+                    int bonusarmor = 0;
+                    int bonuslight = 0;
+                    for (DamageBonus bonus : w.damage_bonus) {
+                        if (bonus.attribute == Attribute::Light) {
+                            bonuslight += bonus.bonus;
+                        }
+                        else if (bonus.attribute == Attribute::Armored) {
+                            bonusarmor += bonus.bonus;
+                        }
+                        else {
+                            printf("ATTRIBUTE NOT PROGRAMMED %d\n", bonus.attribute);
+                        }
+                    }
+                    
+                    if (w.type == Weapon::TargetType::Air || w.type == Weapon::TargetType::Any) {
+                        d.air = w.damage_ / w.speed;
+                        d.airarmored = bonusarmor / w.speed;
+                        d.airlight = bonuslight / w.speed;
+                    }
+
+                    if (w.type == Weapon::TargetType::Ground || w.type == Weapon::TargetType::Any) {
+                        d.ground = w.damage_ / w.speed;
+                        d.groundarmored = bonusarmor / w.speed;
+                        d.groundlight = bonuslight / w.speed;
+                    }
+
+                    UnitManager::setEnemyDamageRadius((*it2)->pos(this), (*it2)->radius + w.range, d, this);
+                    //printf("%s %Ix set %.1f,%.1f  %.1f,%.1f  %.1f,%.1f\n", UnitTypeToName((*it2)->type), (*it2)->self, d.ground, d.air, d.groundlight, d.airlight, d.groundarmored, d.airarmored);
+                }
+            }
+        }
+        //for (const Unit* u : Observation()->GetUnits(Unit::Alliance::Self)) {
+        //    UnitManager::setEnemyDamageRadius(u->pos, u->radius, this);
+        //    //printf("HEIGHT %.1f\n", u->pos.z);
+        //}
+
+        onStepProfiler.midLog("DamageGridUpdate");
+
         //grid();
 
-        displaySpacialHashGrid();
+        //displaySpacialHashGrid();
+
+        displayEnemyDamageGrid();
 
         //pylonBuildingLoc();
         //listUnitWraps();

@@ -9,7 +9,7 @@
 //#include "grid.hpp"
 //#include "tools.hpp"
 
-#define DISP ((size%2 == 0) ? 0.5 : 0)
+#define DISP ((size%2 == 0) ? 0.5F : 0.0F)
 
 using namespace sc2;
 
@@ -39,7 +39,7 @@ std::string strprintf(const std::string &format, Args... args) {
 }
 
 Point2D P2D(const Point2DI &p) {
-    return Point2D(p.x, p.y);
+    return Point2D((float)p.x, (float)p.y);
 }
 
 Point2D P2D(const Point3D &p) {
@@ -47,7 +47,7 @@ Point2D P2D(const Point3D &p) {
 }
 
 Point2DI P2DI(const Point3D &p) {
-    return Point2DI(p.x, p.y);
+    return Point2DI((int)p.x, (int)p.y);
 }
 
 Point2D normalize(const Point2D& p) {
@@ -459,7 +459,7 @@ static bool requiresPylon(AbilityID build_ability) {
 static int theorySupply(Agent *agent) {
     Units nexi = agent->Observation()->GetUnits(Unit::Alliance::Self, Aux::isNexus);
     Units pylons = agent->Observation()->GetUnits(Unit::Alliance::Self, Aux::isPylon);
-    return (nexi.size() * 15) + (pylons.size() * 8);
+    return int(nexi.size() * 15) + (pylons.size() * 8);
 }
 
 bool addPlacement(Point2D p, int size) {
@@ -600,8 +600,6 @@ bool isFlyingTargetType(UnitTypeID unit_type) {
             printf("ISFLYINGTARGET ERROR\n");
             return false;
     }
-    printf("ISFLYINGTARGET ERROR\n");
-    return false;
 }
 
 bool isGroundTargetType(UnitTypeID unit_type) {
@@ -680,8 +678,6 @@ bool isGroundTargetType(UnitTypeID unit_type) {
             printf("ISGROUNDTARGET ERROR\n");
             return false;
     }
-    printf("ISGROUNDTARGET ERROR\n");
-    return false;
 }
 
 

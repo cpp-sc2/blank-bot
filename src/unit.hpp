@@ -1,6 +1,7 @@
 #pragma once
 #include <sc2api/sc2_api.h>
 #include <map>
+#include "map2dFloat.hpp"
 
 using namespace sc2;
 using namespace std;
@@ -70,11 +71,131 @@ public:
 
 using UnitWrappers = vector<UnitWrapper*>;
 using UnitWrapperSet = set<UnitWrapper*>;
+using damageval = float;
+
+struct DamageLocation {
+    damageval ground = 0;
+    damageval groundlight = 0;
+    damageval groundarmored = 0;
+    
+    damageval air = 0;
+    damageval airlight = 0;
+    damageval airarmored = 0;
+
+    void operator+=(const DamageLocation& u) {
+        ground += u.ground;
+        groundlight += u.groundlight;
+        groundarmored += u.groundarmored;
+        air += u.air;
+        airlight += u.airlight;
+        airarmored += u.airarmored;
+    }
+
+    DamageLocation operator+(const DamageLocation& u) {
+        return DamageLocation{ 
+            (damageval)(ground += u.ground),
+            (damageval)(groundlight + u.groundlight),
+            (damageval)(groundarmored + u.groundarmored),
+            (damageval)(air + u.air),
+            (damageval)(airlight + u.airlight),
+            (damageval)(airarmored + u.airarmored)};
+    }
+};
 
 namespace UnitManager {
     map<UnitTypeID, UnitWrappers> units;
     map<UnitTypeID, UnitWrappers> neutrals;
     map<UnitTypeID, UnitWrappers> enemies;
+
+    constexpr int damageNetPrecision = 5;
+    #define blockSize 1.0F/UnitManager::damageNetPrecision
+
+    map2d<DamageLocation>* enemyDamageNet;
+
+    //map2d<int16_t>* enemyDamageNetGround;
+    //map2d<int16_t>* enemyDamageNetGroundLight;
+    //map2d<int16_t>* enemyDamageNetGroundArmored;
+    //map2d<int16_t>* enemyDamageNetAir;
+    //map2d<int16_t>* enemyDamageNetAirLight;
+    //map2d<int16_t>* enemyDamageNetAirArmored;
+
+    #define damageNetEnemy(p) imRef(UnitManager::enemyDamageNet, int(p.x * UnitManager::damageNetPrecision), int(p.y * UnitManager::damageNetPrecision))
+
+    //DamageLocation getDamage(Point2D p) {
+    //    int16_t g = imRef(enemyDamageNetGround, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
+    //    int16_t gl = imRef(enemyDamageNetGroundLight, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
+    //    int16_t ga = imRef(enemyDamageNetGroundArmored, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
+    //    int16_t a = imRef(enemyDamageNetAir, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
+    //    int16_t al = imRef(enemyDamageNetAirLight, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
+    //    int16_t aa = imRef(enemyDamageNetAirArmored, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
+    //    return DamageLocation{ g,gl,ga,a,al,aa };
+    //}
+
+    //DamageLocation getDamageRaw(int i, int j) {
+    //    int16_t g = imRef(enemyDamageNetGround, i, j);
+    //    int16_t gl = imRef(enemyDamageNetGroundLight, i, j);
+    //    int16_t ga = imRef(enemyDamageNetGroundArmored, i, j);
+    //    int16_t a = imRef(enemyDamageNetAir, i, j);
+    //    int16_t al = imRef(enemyDamageNetAirLight, i, j);
+    //    int16_t aa = imRef(enemyDamageNetAirArmored, i, j);
+    //    return DamageLocation{ g,gl,ga,a,al,aa };
+    //}
+
+    //void setDamage(Point2D p, DamageLocation damage) {
+    //    imRef(enemyDamageNetGround, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.ground;
+    //    imRef(enemyDamageNetGroundLight, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.groundlight;
+    //    imRef(enemyDamageNetGroundArmored, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.groundarmored;
+    //    imRef(enemyDamageNetAir, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.air;
+    //    imRef(enemyDamageNetAirLight, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.airlight;
+    //    imRef(enemyDamageNetAirArmored, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.airarmored;
+    //}
+
+    //void setDamageRaw(int i, int j, DamageLocation damage) {
+    //    imRef(enemyDamageNetGround, i, j) = damage.ground;
+    //    imRef(enemyDamageNetGroundLight, i, j) = damage.groundlight;
+    //    imRef(enemyDamageNetGroundArmored, i, j) = damage.groundarmored;
+    //    imRef(enemyDamageNetAir, i, j) = damage.air;
+    //    imRef(enemyDamageNetAirLight, i, j) = damage.airlight;
+    //    imRef(enemyDamageNetAirArmored, i, j) = damage.airarmored;
+    //}
+
+    void setEnemyDamageRadius(Point2D pos, float radius, DamageLocation damage, Agent* agent) {
+        int x = (pos.x - radius) * damageNetPrecision;
+        int y = (pos.y - radius) * damageNetPrecision;
+        int xmax = (pos.x + radius) * damageNetPrecision + 1;
+        int ymax = (pos.y + radius) * damageNetPrecision + 1;
+        //printf("%d - %d, %d - %d\n", x, xmax, y, ymax);
+        for (int i = x; i <= xmax; i++) {
+            for (int j = y; j <= ymax; j++) {
+                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                bool activate = false;
+                for (float a = 0; a <= 1; a += 0.25) {
+                    for (float b = 0; b <= 1; b += 0.25) {
+                        Point2D temp{ i + a, j + b };
+                        if (Distance2D(pos * damageNetPrecision, temp) < radius * damageNetPrecision) {
+                            activate = true;
+                            break;
+                        }
+                    }
+                    if (activate) {
+                        break;
+                    }
+                }
+                if (activate) {
+                    if (i > 0 && j > 0) {
+                        DamageLocation d = imRef(enemyDamageNet, i - 1, j - 1);
+                        //printf("pre %.1f,%.1f  %.1f,%.1f  %.1f,%.1f\n", d.ground, d.air, d.groundlight, d.airlight, d.groundarmored, d.airarmored);
+                        imRef(enemyDamageNet, i - 1, j - 1) += damage;
+                        d = imRef(enemyDamageNet, i - 1, j - 1);
+                        //printf("post %.1f,%.1f  %.1f,%.1f  %.1f,%.1f\n", d.ground, d.air, d.groundlight, d.airlight, d.groundarmored, d.airarmored);
+                    }
+                    //DamageLocation();
+                    //DamageLocation d = getDamageRaw(i - 1, j - 1) + damage;
+                    //setDamageRaw( i-1, j-1, d);
+                }
+            }
+        }
+    }
 
     bool checkExist(UnitTypeID id) {
         return units.find(id) != units.end();
@@ -187,16 +308,46 @@ UnitWrapper::UnitWrapper(const Unit *unit) : self(unit->tag), type(unit->unit_ty
             UnitManager::units[type] = UnitWrappers();
         }
         UnitManager::units[type].push_back(this);
+        //if (std::find(UnitManager::units[type].begin(), UnitManager::units[type].end(), this) == UnitManager::units[type].end()) {
+        //    UnitManager::units[type].push_back(this);
+        //}
+        //else {
+        //    printf("DuplicateUnit\n");
+        //}
     }else if (unit->alliance == Unit::Alliance::Neutral) {
         if (!UnitManager::checkExistNeutral(type)) {
             UnitManager::neutrals[type] = UnitWrappers();
         }
         UnitManager::neutrals[type].push_back(this);
+        //if (std::find(UnitManager::neutrals[type].begin(), UnitManager::neutrals[type].end(), this) == UnitManager::neutrals[type].end()) {
+        //    UnitManager::neutrals[type].push_back(this);
+        //}
+        //else {
+        //    printf("DuplicateNeutral\n");
+        //}
     }else if (unit->alliance == Unit::Alliance::Enemy) {
         if (!UnitManager::checkExistEnemy(type)) {
             UnitManager::enemies[type] = UnitWrappers();
         }
-        UnitManager::enemies[type].push_back(this);
+        //UnitManager::enemies[type].push_back(this);
+        bool found = false;
+        for (UnitWrapper* wrap : UnitManager::enemies[type]) {
+            if (unit->tag == wrap->self) {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            printf("DuplicateEnemy\n");
+        } else {
+            UnitManager::enemies[type].push_back(this);
+        }
+        //if (std::find(UnitManager::enemies[type].begin(), UnitManager::enemies[type].end(), this) == UnitManager::enemies[type].end()) {
+        //    UnitManager::enemies[type].push_back(this);
+        //}
+        //else {
+        //    printf("DuplicateEnemy\n");
+        //}
     }
     ignoreFrames = 0;
     abilities = AvailableAbilities();

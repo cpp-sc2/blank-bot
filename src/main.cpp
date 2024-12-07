@@ -10,6 +10,10 @@
 
 #include <iostream>
 
+#define MICRO_TEST 0
+#define START_ME Point2D{40,50}
+#define START_OP Point2D{60,50}
+
 #ifdef BUILD_FOR_LADDER
 namespace
 {
@@ -89,38 +93,46 @@ int main(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2)
-    {
-        std::cerr << "Provide either name of the map file or path to it!" << std::endl;
-        return 1;
-    }
-
-    sc2::Coordinator coordinator;
+    srand(clock());
+    Coordinator coordinator;
     coordinator.LoadSettings(argc, argv);
 
-    // NOTE: Uncomment to start the game in full screen mode.
-    // coordinator.SetFullScreen(true);
-
-    // NOTE: Uncomment to play at normal speed.
-    // coordinator.SetRealtime(true);
-
     Bot bot;
-    coordinator.SetParticipants(
-        {
-            CreateParticipant(sc2::Race::Random, &bot, "BlankBot"),
-            CreateComputer(
-                sc2::Race::Random,
-                sc2::Difficulty::CheatInsane,
-                sc2::AIBuild::Rush,
-                "CheatInsane"
-                )
-        });
+    Difficulty diff = Difficulty::Hard;
 
-    coordinator.LaunchStarcraft();
-    coordinator.StartGame(argv[1]);
+    if (MICRO_TEST) {
+        Race race = Race::Random;
+        coordinator.SetParticipants({ CreateParticipant(Race::Protoss, &bot), CreateComputer(race, diff) });
 
-    while (coordinator.Update())
-    {}
+        coordinator.LaunchStarcraft();
+        //coordinator.StartGame("MicroAIArena/Tier1MicroAIArena_v1.SC2Map");
+        coordinator.StartGame("Test/Empty.SC2Map");
+
+        bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, START_ME, 1, 6);
+
+        bot.Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, START_OP, 2, 16);
+        bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, START_OP, 2, 2);
+
+        while (coordinator.Update()) {
+        }
+
+    }
+    else {
+        Race race = (Race)(std::rand() % 4);  // Race::Random;
+        coordinator.SetParticipants({ CreateParticipant(Race::Protoss, &bot), CreateComputer(race, diff) });
+
+        coordinator.LaunchStarcraft();
+        std::string maps[6] = { "5_13/Oceanborn513AIE.SC2Map",  "5_13/Equilibrium513AIE.SC2Map",
+                               "5_13/GoldenAura513AIE.SC2Map", "5_13/Gresvan513AIE.SC2Map",
+                               "5_13/HardLead513AIE.SC2Map",   "5_13/SiteDelta513AIE.SC2Map" };
+        int r = std::rand() % 6;
+        printf("rand %d [%d %d %d %d %d %d] %d\n", r, std::rand(), std::rand(), std::rand(), std::rand(), std::rand(),
+            std::rand(), RAND_MAX);
+
+        coordinator.StartGame(maps[r]);
+        while (coordinator.Update()) {
+        }
+    }
 
     return 0;
 }

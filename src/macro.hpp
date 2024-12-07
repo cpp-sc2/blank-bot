@@ -476,7 +476,7 @@ namespace Macro {
                     bool found = false;
                     for (int i = 0; i < prereqs.size(); i++) {
                         const Unit *prereq = agent->Observation()->GetUnit(prereqs[i]->self);
-                        if (((1.0 - prereq->build_progress) * prereq_stats.build_time / fps) < dt) {
+                        if (prereq->build_progress == 1.0 || ((1.0 - prereq->build_progress) * prereq_stats.build_time / fps) < dt) {
                             found = true;
                             break;
                         }

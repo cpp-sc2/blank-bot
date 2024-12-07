@@ -7,6 +7,7 @@
 #include "profiler.hpp"
 #include "unit.hpp"
 #include "spacialhashgrid.hpp"
+#include "map2dFloat.hpp"
 
 constexpr int BERTH = 1;
 
@@ -29,6 +30,8 @@ char *SquadModeToString(SquadMode mode) {
     }
     return "HUH?";
 }
+
+//map2dFloat<float>* enemyDamageNet;
 
 struct DamageNet {
     Point2D pos;
@@ -287,7 +290,7 @@ public:
             //ignoreFrames = 10;
             
             UnitTypes allData = agent->Observation()->GetUnitTypeData();
-            Units enemies = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
+            //Units enemies = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
             //std::vector<DamageNet> enemiesnet;
             //for (int e = 0; e < enemies.size(); e++) {
             //    UnitTypeData enemy_stats = allData.at(static_cast<uint32_t>(enemies[e]->unit_type));
@@ -337,7 +340,7 @@ public:
                 }
 
                 //all.push_back(wrap->self);
-                if (enemies.size() == 0) {
+                if (0) {
                     if (squadStates[wrap->self] == 'o') {
                         join.push_back(wrap->self);
                     } else {
@@ -351,7 +354,7 @@ public:
                     UnitWrappers dangerous = UnitWrappers();
                     std::vector<float> dangerousPriority = std::vector<float>();
                     int engaged = false;
-                    auto profileStuff = new Profiler("checkEnemies");
+                    //auto profileStuff = new Profiler("checkEnemies");
                     UnitWrappers enemi = SpacialHash::findInRadiusEnemy(wrap->pos(agent), 14, agent);
                     for (auto it2 = enemi.begin(); it2 != enemi.end(); it2++) {
                         if ((*it2)->pos(agent) == Point2D{0, 0}) {
@@ -442,7 +445,7 @@ public:
                             }
                         }
                     }
-                    delete profileStuff;
+                    //delete profileStuff;
                     if (engaged) {
                         numArmyEngaged++;
                     }
@@ -749,6 +752,29 @@ public:
         }
         agent->Actions()->UnitCommand(self, ABILITY_ID::MOVE_MOVE, squad->center(agent));
         ignoreFrames = 50;
+    }
+};
+
+class Zealot : public ArmyUnit {
+private:
+
+public:
+    Zealot(const Unit* unit) : ArmyUnit(unit) {
+        squad->squadStates[self] = 'm';
+    }
+
+    virtual bool execute(Agent* agent) {
+        if (ignoreFrames > 0) {
+            ignoreFrames--;
+            return false;
+        }
+        if (squad->intermediateLoc != Point2D{ 0,0 }) {
+            agent->Actions()->UnitCommand(self, ABILITY_ID::ATTACK, squad->intermediateLoc);
+        }
+        else {
+            agent->Actions()->UnitCommand(self, ABILITY_ID::ATTACK, squad->location);
+        }
+        ignoreFrames = 3;
     }
 };
 
