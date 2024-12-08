@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  sc2:
+    restart: unless-stopped
+    image: aiarena/arenaclient-sc2-base:${VERSION:-latest}
+    build:
+      context: ./
+      dockerfile: ./docker/Dockerfile.sc2
+
+  bot:
+    restart: unless-stopped
+    image: aiarena/arenaclient-bot-base:${VERSION:-latest}
+    build:
+      context: ./
+      dockerfile: ./docker/Dockerfile.bot
+  # For updating the poetry.lock file, based off the bot image
+  poetry-update:
+    build:
+      context: ./
+      dockerfile: ./docker/Dockerfile.bot
+    volumes:
+      - ./poetry.lock:/root/poetry.lock
+      - ./pyproject.toml:/root/pyproject.toml
+    working_dir: /root/
+    command: bash -c "pip install poetry && poetry update && poetry export -f requirements.txt --without-hashes"

@@ -1,0 +1,33 @@
+FROM debian:bookworm-slim
+LABEL AI Arena <staff@aiarena.net>
+
+USER root
+WORKDIR /root/
+
+RUN apt-get update \
+    && apt-get upgrade --assume-yes --quiet=2 \
+    && apt-get install --assume-yes --no-install-recommends --no-show-upgraded \
+    wget \
+    unzip
+
+# Download and uncompress StarCraftII from https://github.com/Blizzard/s2client-proto#linux-packages and remove zip file
+# If file is locally available, use this instead:
+#COPY SC2.4.10.zip /root/
+RUN wget --quiet --show-progress --progress=bar:force http://blzdistsc2-a.akamaihd.net/Linux/SC2.4.10.zip \
+    && unzip -q -P iagreetotheeula SC2.4.10.zip \
+    && rm SC2.4.10.zip
+
+# Remove Battle.net folder
+RUN rm -rf /root/StarCraftII/Battle.net/* \
+    # Remove Shaders folder
+    && rm -rf /root/StarCraftII/Versions/Shaders*
+
+# Create a symlink for the maps directory
+RUN ln -s /root/StarCraftII/Maps /root/StarCraftII/maps \
+    # Remove the Maps that come with the SC2 client
+    && rm -rf /root/StarCraftII/maps/*
+
+
+RUN apt remove --yes wget \
+    unzip \ 
+    && apt autoremove --yes
