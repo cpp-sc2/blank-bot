@@ -1,0 +1,2 @@
+go into /build/_deps/cpp_sc2-src/thirdparty/civetweb/civetweb.cmake
+add the 
