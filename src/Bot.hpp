@@ -17,6 +17,8 @@
 #include "BoudaoudSiderTariThinning.hpp"
 #include <sc2api/sc2_gametypes.h>
 #include <sc2utils/sc2_arg_parser.h>
+
+#define DISPLAY_AIR 0
 #define MICRO_TEST 0
 #define START_ME Point2D{40,50}
 #define START_OP Point2D{60,50}
@@ -254,7 +256,7 @@ public:
         }
     }
 
-    void displayEnemyDamageGrid() {
+    void displayEnemyDamageGrid2() {
         GameInfo game_info = Observation()->GetGameInfo();
 
         int mapWidth = game_info.width;
@@ -291,9 +293,9 @@ public:
                 //     }
                 // }
 
-                if (damageNetEnemy(p).ground != 0 || damageNetEnemy(p).air != 0) {
-                    uint8_t r = (damageNetEnemy(p).ground * 2);
-                    uint8_t b = (damageNetEnemy(p).air * 2);
+                if (damageNetEnemy(p).ground.normal != 0 || damageNetEnemy(p).air.normal != 0) {
+                    uint8_t r = (damageNetEnemy(p).ground.normal * 2);
+                    uint8_t b = (damageNetEnemy(p).air.normal * 2);
                     //printf("col %d %d\n", r, b);
                     c = {r, 0, b};
                 }
@@ -313,6 +315,75 @@ public:
                     Debug()->DebugTextOut(cs, Point3D(w + 0.5 - disp, h + 0.5, height + 0.1 + displace),
                                             Color(200, 190, 115), fontSize);*/
                 }
+            }
+        }
+    }
+
+    void displayEnemyDamageGrid() {
+        GameInfo game_info = Observation()->GetGameInfo();
+
+        int mapWidth = game_info.width * UnitManager::damageNetPrecision;
+        int mapHeight = game_info.height * UnitManager::damageNetPrecision;
+
+        Point2D center = Observation()->GetCameraPos() * UnitManager::damageNetPrecision;
+        int wS = int(center.x) - 10 * UnitManager::damageNetPrecision;
+        if (wS < 0)
+            wS = 0;
+        int hS = int(center.y) - 5 * UnitManager::damageNetPrecision;
+        if (hS < 0)
+            hS = 0;
+        int wE = int(center.x) + 11 * UnitManager::damageNetPrecision;
+        if (wE > mapWidth)
+            wE = mapWidth;
+        int hE = int(center.y) + 14 * UnitManager::damageNetPrecision;
+        if (hE > mapHeight)
+            hE = mapHeight;
+
+        int fontSize = 8;
+
+        #define BOX_BORDER_SD 0.002
+
+        float damageMult = 255.0 / 32768;
+
+        for (int w = wS; w < wE; w += 1) {
+            for (int h = hS; h < hE; h += 1) {
+                Point2D p(w * blockSize, h * blockSize);
+                float boxHeight = 0;
+                Color c(255, 255, 255);
+
+                if (damageNetEnemy(p).ground.normal != 0) {
+                    uint8_t r = (uint8_t)(damageNetEnemy(p).ground.normal * damageMult);
+                    uint8_t g = (uint8_t)(damageNetEnemy(p).ground.light * damageMult);
+                    uint8_t b = (uint8_t)(damageNetEnemy(p).ground.armored * damageMult);
+                    //printf("col %d %d\n", r, b);
+                    c = { r, g, b };
+                }
+
+                if (0 || !(c.r == 255 && c.g == 255 && c.b == 255)) {
+                    float height = Observation()->TerrainHeight(Point2D{ (w + 0.5F) * blockSize, (h + 0.5F) * blockSize });
+                    Point3D corner1{ w * blockSize, h * blockSize, height + 0.01F };
+                    Point3D corner2{ (w + 1) * blockSize, (h + 1) * blockSize, height - 0.01F };
+                    Debug()->DebugBoxOut(corner1,corner2, c);
+                }
+
+                #if DISPLAY_AIR
+
+                c = { 255, 255, 255 };
+
+                if (damageNetEnemy(p).air.normal != 0) {
+                    uint8_t r = (uint8_t)(damageNetEnemy(p).air.normal * damageMult);
+                    uint8_t g = (uint8_t)(damageNetEnemy(p).air.light * damageMult);
+                    uint8_t b = (uint8_t)(damageNetEnemy(p).air.armored * damageMult);
+                    c = { r, g, b };
+                }
+
+                if (0 || !(c.r == 255 && c.g == 255 && c.b == 255)) {
+                    float height = Observation()->TerrainHeight(Point2D{ (w + 0.5F) * blockSize, (h + 0.5F) * blockSize });
+                    Point3D corner1{ w * blockSize, h * blockSize, height + 5.01F };
+                    Point3D corner2{ (w + 1) * blockSize, (h + 1) * blockSize, height + 5.01F };
+                    Debug()->DebugBoxOut(corner1, corner2, c);
+                }
+                #endif
             }
         }
     }
@@ -562,6 +633,7 @@ public:
         path_zhang_suen = new map2d<int8_t>(mapWidth, mapHeight, true);
 
         UnitManager::enemyDamageNet = new map2d<DamageLocation>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
+        UnitManager::enemyDamageNetModify = new map2d<int8_t>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
 
         //UnitManager::enemyDamageNetGround = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
         //UnitManager::enemyDamageNetGroundLight = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
@@ -699,8 +771,7 @@ public:
                 new ObserverEye(unit);
             } else if (unit->unit_type == UNIT_TYPEID::PROTOSS_ZEALOT) {
                 new Zealot(unit);
-            }
-            else {
+            } else {
                 new ArmyUnit(unit);
             }
         } else{
@@ -801,6 +872,10 @@ public:
         UnitWrapper::loadAbilities(this);
 
         onStepProfiler.midLog("LoadAbilities");
+
+        UnitWrapper::loadAbilitiesEnemy(this);
+
+        onStepProfiler.midLog("LoadAbilitiesEnemy");
 
         auto probes = UnitManager::get(UNIT_TYPEID::PROTOSS_PROBE);
         for (auto it = probes.begin(); it != probes.end(); it++) {
@@ -1011,29 +1086,20 @@ public:
 
         onStepProfiler.midLog("DT");
 
-        for (int i = 0; i < UnitManager::enemyDamageNet->width(); i++) {
-            for (int j = 0; j < UnitManager::enemyDamageNet->height(); j++) {
-                imRef(UnitManager::enemyDamageNet, i, j) = { 0.0,0.0,0.0,0.0,0.0,0.0 };
-            }
-        }
-
-        //for (int i = 0; i < UnitManager::enemyDamageNetGround->width(); i++) {
-        //    for (int j = 0; j < UnitManager::enemyDamageNetGround->height(); j++) {
-        //        imRef(UnitManager::enemyDamageNetGround, i, j) = 0;
-        //        imRef(UnitManager::enemyDamageNetGroundLight, i, j) = 0;
-        //        imRef(UnitManager::enemyDamageNetGroundArmored, i, j) = 0;
-        //        imRef(UnitManager::enemyDamageNetAir, i, j) = 0;
-        //        imRef(UnitManager::enemyDamageNetAirLight, i, j) = 0;
-        //        imRef(UnitManager::enemyDamageNetAirArmored, i, j) = 0;
+        //for (int i = 0; i < UnitManager::enemyDamageNet->width(); i++) {
+        //    for (int j = 0; j < UnitManager::enemyDamageNet->height(); j++) {
+        //        imRef(UnitManager::enemyDamageNet, i, j) = { 0.0,0.0,0.0,0.0,0.0,0.0 };
         //    }
         //}
 
-        //UnitManager::enemyDamageNetGround->init(0);
-        //UnitManager::enemyDamageNetGroundLight->init(0);
-        //UnitManager::enemyDamageNetGroundArmored->init(0);
-        //UnitManager::enemyDamageNetAir->init(0);
-        //UnitManager::enemyDamageNetAirLight->init(0);
-        //UnitManager::enemyDamageNetAirArmored->init(0);
+        UnitManager::enemyDamageNet->clear();
+        UnitManager::enemyDamageNetModify->clear();
+
+        onStepProfiler.midLog("DamageGridUpdateReset");
+
+        //Debug()->DebugSphereOut(P3D(Observation()->GetCameraPos()), 0.6);
+        //UnitManager::setEnemyDamageRadius(Observation()->GetCameraPos(), 0.6, {200,0,0,0,0,0}, this);
+        //UnitManager::setEnemyDamageRadius(Observation()->GetCameraPos(), 0.6, {0,0,0,200,0,0 }, this);
 
         for (auto it = UnitManager::enemies.begin(); it != UnitManager::enemies.end(); it++) {
             for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
@@ -1043,15 +1109,26 @@ public:
                 // add psi storm (more damage the more time it has left, prioritzed more since its constant dmag)
                 // add helion line, lurker line
                 for (Weapon w : weapons) {
-                    DamageLocation d = { 0,0,0,0,0,0 };
-                    int bonusarmor = 0;
-                    int bonuslight = 0;
+                    DamageLocation d = { { 0,0,0,0,0,0,0 }, { 0,0,0,0,0,0,0 } };
+                    Damage damage = { 0,0,0,0,0,0,0 };
                     for (DamageBonus bonus : w.damage_bonus) {
                         if (bonus.attribute == Attribute::Light) {
-                            bonuslight += bonus.bonus;
+                            damage.light += bonus.bonus / w.speed * 100;
                         }
                         else if (bonus.attribute == Attribute::Armored) {
-                            bonusarmor += bonus.bonus;
+                            damage.armored += bonus.bonus / w.speed * 100;
+                        }
+                        else if (bonus.attribute == Attribute::Biological) {
+                            damage.biological += bonus.bonus / w.speed * 100;
+                        }
+                        else if (bonus.attribute == Attribute::Mechanical) {
+                            damage.mechanical += bonus.bonus / w.speed * 100;
+                        }
+                        else if (bonus.attribute == Attribute::Massive) {
+                            damage.massive += bonus.bonus / w.speed * 100;
+                        }
+                        else if (bonus.attribute == Attribute::Psionic) {
+                            damage.psionic += bonus.bonus / w.speed * 100;
                         }
                         else {
                             printf("ATTRIBUTE NOT PROGRAMMED %d\n", bonus.attribute);
@@ -1059,17 +1136,13 @@ public:
                     }
                     
                     if (w.type == Weapon::TargetType::Air || w.type == Weapon::TargetType::Any) {
-                        d.air = w.damage_ / w.speed;
-                        d.airarmored = bonusarmor / w.speed;
-                        d.airlight = bonuslight / w.speed;
+                        d.air.normal = w.damage_ / w.speed * 100;
+                        d.air += damage;
                     }
-
                     if (w.type == Weapon::TargetType::Ground || w.type == Weapon::TargetType::Any) {
-                        d.ground = w.damage_ / w.speed;
-                        d.groundarmored = bonusarmor / w.speed;
-                        d.groundlight = bonuslight / w.speed;
+                        d.ground.normal = w.damage_ / w.speed * 100;
+                        d.ground += damage;
                     }
-
                     UnitManager::setEnemyDamageRadius((*it2)->pos(this), (*it2)->radius + w.range, d, this);
                     //printf("%s %Ix set %.1f,%.1f  %.1f,%.1f  %.1f,%.1f\n", UnitTypeToName((*it2)->type), (*it2)->self, d.ground, d.air, d.groundlight, d.airlight, d.groundarmored, d.airarmored);
                 }
@@ -1112,6 +1185,8 @@ public:
         onStepProfiler.midLog("Debug");
 
         Debug()->SendDebug();
+
+        onStepProfiler.midLog("DebugSend");
     }
 
     //!  Called when a neutral unit is created. For example, mineral fields observed for the first time
@@ -1182,6 +1257,8 @@ public:
         }
     }
 };
+
+//better stalker teleporting with new damagenet
 
 
 //fully optimize

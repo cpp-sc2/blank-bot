@@ -335,7 +335,7 @@ public:
                 }
 
                 int berthRadius = BERTH;
-                if (squadStates[wrap->self] == 'r') {
+                if (0 && squadStates[wrap->self] == 'r') {
                     berthRadius += 4;
                 }
 
@@ -449,7 +449,7 @@ public:
                     if (engaged) {
                         numArmyEngaged++;
                     }
-                    if (1 && (squadStates[wrap->self] == 'r' || !withinRadius(agent))) {
+                    if (0 && (squadStates[wrap->self] == 'r' || !withinRadius(agent))) {
                         if (dangerous.size() != 0) {
                             if (avoiding.find(dangerous.front()->self) == avoiding.end()) {
                                 avoiding[dangerous.front()->self] = Tags();

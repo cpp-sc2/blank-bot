@@ -39,6 +39,8 @@ public:
 
     static void loadAbilities(Agent *agent);
 
+    static void loadAbilitiesEnemy(Agent* agent);
+
     bool checkAbility(AbilityID ability) {
         for (int i = 0; i < abilities.abilities.size(); i++) {
             if (ability == abilities.abilities[i].ability_id) {
@@ -71,34 +73,54 @@ public:
 
 using UnitWrappers = vector<UnitWrapper*>;
 using UnitWrapperSet = set<UnitWrapper*>;
-using damageval = float;
+using damageval = uint16_t;
+
+struct Damage {
+    damageval normal;
+    damageval armored;
+    damageval light;
+    damageval biological;
+    damageval mechanical;
+    damageval massive;
+    damageval psionic;
+
+    void operator+=(const Damage& u) {
+        normal += u.normal;
+        armored += u.armored;
+        light += u.light;
+        biological += u.biological;
+        mechanical += u.mechanical;
+        massive += u.massive;
+        psionic += u.psionic;
+    }
+
+    Damage operator+(const Damage& u) {
+        return Damage{
+            (damageval)(normal + u.normal),
+            (damageval)(armored + u.armored),
+            (damageval)(light + u.light),
+            (damageval)(biological + u.biological),
+            (damageval)(mechanical + u.mechanical),
+            (damageval)(massive + u.massive), 
+            (damageval)(psionic + u.psionic) };
+    }
+};
 
 struct DamageLocation {
-    damageval ground = 0;
-    damageval groundlight = 0;
-    damageval groundarmored = 0;
+    Damage ground;
     
-    damageval air = 0;
-    damageval airlight = 0;
-    damageval airarmored = 0;
+    Damage air;
 
     void operator+=(const DamageLocation& u) {
         ground += u.ground;
-        groundlight += u.groundlight;
-        groundarmored += u.groundarmored;
         air += u.air;
-        airlight += u.airlight;
-        airarmored += u.airarmored;
     }
 
     DamageLocation operator+(const DamageLocation& u) {
-        return DamageLocation{ 
-            (damageval)(ground += u.ground),
-            (damageval)(groundlight + u.groundlight),
-            (damageval)(groundarmored + u.groundarmored),
-            (damageval)(air + u.air),
-            (damageval)(airlight + u.airlight),
-            (damageval)(airarmored + u.airarmored)};
+        return DamageLocation{
+            (ground + u.ground),
+            (air + u.air) 
+        };
     }
 };
 
@@ -111,6 +133,7 @@ namespace UnitManager {
     #define blockSize 1.0F/UnitManager::damageNetPrecision
 
     map2d<DamageLocation>* enemyDamageNet;
+    map2d<int8_t>* enemyDamageNetModify;
 
     //map2d<int16_t>* enemyDamageNetGround;
     //map2d<int16_t>* enemyDamageNetGroundLight;
@@ -159,7 +182,7 @@ namespace UnitManager {
     //    imRef(enemyDamageNetAirArmored, i, j) = damage.airarmored;
     //}
 
-    void setEnemyDamageRadius(Point2D pos, float radius, DamageLocation damage, Agent* agent) {
+    void setEnemyDamageRadius2(Point2D pos, float radius, DamageLocation damage, Agent* agent) {
         int x = (pos.x - radius) * damageNetPrecision;
         int y = (pos.y - radius) * damageNetPrecision;
         int xmax = (pos.x + radius) * damageNetPrecision + 1;
@@ -182,7 +205,7 @@ namespace UnitManager {
                     }
                 }
                 if (activate) {
-                    if (i > 0 && j > 0) {
+                    if (i > 1 && j > 1) {
                         DamageLocation d = imRef(enemyDamageNet, i - 1, j - 1);
                         //printf("pre %.1f,%.1f  %.1f,%.1f  %.1f,%.1f\n", d.ground, d.air, d.groundlight, d.airlight, d.groundarmored, d.airarmored);
                         imRef(enemyDamageNet, i - 1, j - 1) += damage;
@@ -192,6 +215,38 @@ namespace UnitManager {
                     //DamageLocation();
                     //DamageLocation d = getDamageRaw(i - 1, j - 1) + damage;
                     //setDamageRaw( i-1, j-1, d);
+                }
+            }
+        }
+    }
+
+    void setEnemyDamageRadius(Point2D pos, float radius, DamageLocation damage, Agent* agent) {
+        //printf("5ize:%d\n", sizeof(DamageLocation));
+        enemyDamageNetModify->clear();
+        int x = (pos.x - radius) * damageNetPrecision;
+        int y = (pos.y - radius) * damageNetPrecision;
+        int xmax = (pos.x + radius) * damageNetPrecision;
+        int ymax = (pos.y + radius) * damageNetPrecision;
+        //printf("%d - %d, %d - %d\n", x, xmax, y, ymax);
+        imRef(enemyDamageNetModify, int(pos.x * damageNetPrecision), int(pos.y * damageNetPrecision)) = 1;
+        for (int i = x; i <= xmax; i++) {
+            for (int j = y; j <= ymax; j++) {
+                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                float f = Distance2D(pos * damageNetPrecision, Point2D{ (float)i,(float)j });
+                if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && f < radius * damageNetPrecision) {
+                    imRef(enemyDamageNetModify, i, j) = 1;
+                    imRef(enemyDamageNetModify, i, j - 1) = 1;
+                    imRef(enemyDamageNetModify, i - 1, j) = 1;
+                    imRef(enemyDamageNetModify, i - 1, j - 1) = 1;
+                }
+            }
+        }
+
+        for (int i = x-1; i <= xmax+1; i++) {
+            for (int j = y-1; j <= ymax+1; j++) {
+                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && imRef(enemyDamageNetModify, i, j)) {
+                    imRef(enemyDamageNet, i, j) += damage;
                 }
             }
         }
@@ -414,15 +469,29 @@ void UnitWrapper::loadAbilities(Agent *agent) {
                 continue;
             }
             u->abilities = abil;
-            //if (abil.abilities.size() == 0) {
-            //    u->abilities = AvailableAbilities();
-            //    u->abilities.unit_tag = abil.unit_tag;
-            //    u->abilities.unit_type_id = abil.unit_type_id;
-            //} else {
-            //    u->abilities = abil;
-            //}
         }
             
+    }
+}
+
+void UnitWrapper::loadAbilitiesEnemy(Agent* agent) {
+    Units all = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
+    vector<AvailableAbilities> allAb = agent->Query()->GetAbilitiesForUnits(all);
+    for (AvailableAbilities abil : allAb) {
+        if (abil.unit_tag != NullTag) {
+            UnitWrapper* u = UnitManager::findEnemy(abil.unit_type_id, abil.unit_tag);
+            if (u == nullptr) {
+                continue;
+            }
+            u->abilities = abil;
+            if (abil.abilities.size() != 0) {
+                printf("ABIL:%d %s\n", abil.abilities.size(), UnitTypeToName(abil.unit_tag));
+                for (auto a : abil.abilities) {
+                    printf("%s\n", AbilityTypeToName(a.ability_id));
+                }
+            }
+        }
+
     }
 }
 
