@@ -105,6 +105,30 @@ struct Damage {
             (damageval)(massive + u.massive), 
             (damageval)(psionic + u.psionic) };
     }
+
+    void updateHighest(Damage dmag) {
+        if (dmag.normal > normal) {
+            normal = dmag.normal;
+        }
+        if (dmag.armored > armored) {
+            armored = dmag.armored;
+        }
+        if (dmag.light > light) {
+            light = dmag.light;
+        }
+        if (dmag.biological > biological) {
+            biological = dmag.biological;
+        }
+        if (dmag.mechanical > mechanical) {
+            mechanical = dmag.mechanical;
+        }
+        if (dmag.massive > massive) {
+            massive = dmag.massive;
+        }
+        if (dmag.psionic > psionic) {
+            psionic = dmag.psionic;
+        }
+    }
 };
 
 struct DamageLocation {
@@ -122,6 +146,11 @@ struct DamageLocation {
             (ground + u.ground),
             (air + u.air) 
         };
+    }
+
+    void updateHighest(DamageLocation dmagloc) {
+        ground.updateHighest(dmagloc.ground);
+        air.updateHighest(dmagloc.air);
     }
 };
 
@@ -218,13 +247,10 @@ namespace UnitManager {
         }
     }
 
-    void setEnemyDamageRadius3(Point2D pos, float radius, DamageLocation damage, Agent* agent) {
-        //Profiler profiler("DamageGridF");
-        
+    void fillDamageModify(Point2D pos, float radius, Agent* agent) {
         int center_x = pos.x * damageNetPrecision;
         int center_y = pos.y * damageNetPrecision;
 
-        enemyDamageNetModify->clear();
         int xmin = std::max(int((pos.x - radius) * damageNetPrecision), 0);
         int ymin = std::max(int((pos.y - radius) * damageNetPrecision), 0);
         int xmax = std::min(int((pos.x + radius) * damageNetPrecision), enemyDamageNetModify->width());
@@ -238,22 +264,21 @@ namespace UnitManager {
         int dir_x = 0;
         int dir_y = 0;
 
-        for (int p = 0; p < (((radius+2) * damageNetPrecision)*6); p++) {
+        for (int p = 0; p < (((radius + 2) * damageNetPrecision) * 6); p++) {
             if (operating_x == center_x) {
                 if (operating_y > center_y) {
                     dir_x = 1;
                     dir_y = -1;
-                    //printf("TOP\n");
                 }
                 else if (operating_y < center_y) {
                     dir_x = -1;
                     dir_y = 1;
-                    //printf("BOT\n");
                 }
                 else {
                     printf("CENTER X\n");
                 }
-            }else if (operating_y == center_y) {
+            }
+            else if (operating_y == center_y) {
                 if (operating_x > center_x) {
                     if (dir_x != 0) {
                         dir_x = 2;
@@ -261,12 +286,10 @@ namespace UnitManager {
                     }
                     dir_x = -1;
                     dir_y = -1;
-                    //printf("RIGHT\n");
                 }
                 else if (operating_x < center_x) {
                     dir_x = 1;
                     dir_y = 1;
-                    //printf("LEFT\n");
                 }
                 else {
                     printf("CENTER Y\n");
@@ -285,7 +308,7 @@ namespace UnitManager {
                     }
                     Point2D testPoint{ (operating_x + disp_x + 0.5F) / damageNetPrecision, (operating_y + disp_y + 0.5F) / damageNetPrecision };
                     float distPoint = Distance2D(pos, testPoint);
-                    if (distPoint < (radius + 0.5F/ damageNetPrecision)) {
+                    if (distPoint < (radius + 0.5F / damageNetPrecision)) {
                         if (dist == -1 || dist < distPoint) {
                             dist = distPoint;
                             min_x = disp_x;
@@ -299,36 +322,8 @@ namespace UnitManager {
             if (operating_x >= 0 && operating_x < enemyDamageNetModify->width() && operating_y >= 0 && operating_y < enemyDamageNetModify->height()) {
                 imRef(enemyDamageNetModify, operating_x, operating_y) = 1;
             }
-            
-        }
 
-        //std::vector<Point2DI> open; 
-        //open.push_back(Point2DI{ center_x,center_y });
-        //while (open.size() != 0) {
-        //    //Profiler profiler("DamageGridF");
-        //    Point2DI pd = open.back();
-        //    open.pop_back();
-        //    imRef(enemyDamageNetModify, pd.x, pd.y) = 1;
-        //    //profiler.midLog("DGF-S");
-        //    if (pd.x != (enemyDamageNetModify->width() - 1) && !imRef(enemyDamageNetModify, pd.x + 1, pd.y)) {
-        //        open.push_back(Point2DI{ pd.x + 1,pd.y });
-        //    }
-        //    //profiler.midLog("DGF-R");
-        //    if (pd.y != (enemyDamageNetModify->height() - 1) && !imRef(enemyDamageNetModify, pd.x, pd.y + 1)) {
-        //        open.push_back(Point2DI{ pd.x,pd.y + 1 });
-        //    }
-        //    //profiler.midLog("DGF-U");
-        //    if (pd.x != 0 && !imRef(enemyDamageNetModify, pd.x - 1, pd.y)) {
-        //        open.push_back(Point2DI{ pd.x - 1,pd.y });
-        //    }
-        //    //profiler.midLog("DGF-L");
-        //    if (pd.y != 0 && !imRef(enemyDamageNetModify, pd.x, pd.y - 1)) {
-        //        open.push_back(Point2DI{ pd.x,pd.y - 1 });
-        //    }
-        //    //profiler.midLog("DGF-F");
-        //}
-        //int ystart = std::max(int((pos.y - radius) * damageNetPrecision), 0);
-        //int yend = std::min(int((pos.y + radius) * damageNetPrecision), enemyDamageNetModify->height());
+        }
 
         for (int yi = ymin; yi < ymax; yi++) {
             for (int xi = center_x; xi < xmax; xi++) {
@@ -344,15 +339,52 @@ namespace UnitManager {
                 imRef(enemyDamageNetModify, xi, yi) = 1;
             }
         }
+    }
 
-        for (int i = xmin - 1; i <= xmax + 1; i++) {
-            for (int j = ymin - 1; j <= ymax + 1; j++) {
+    void setEnemyDamageRadius3(Point2D pos, float radius, DamageLocation damage, Agent* agent) {
+        //Profiler profiler("DamageGridF");
+        enemyDamageNetModify->clear();
+        
+        int xmin = std::max(int((pos.x - radius) * damageNetPrecision), 0);
+        int ymin = std::max(int((pos.y - radius) * damageNetPrecision), 0);
+        int xmax = std::min(int((pos.x + radius) * damageNetPrecision), enemyDamageNetModify->width());
+        int ymax = std::min(int((pos.y + radius) * damageNetPrecision), enemyDamageNetModify->height());
+
+        fillDamageModify(pos, radius, agent);
+
+        for (int i = xmin; i <= xmax; i++) {
+            for (int j = ymin; j <= ymax; j++) {
                 //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
-                if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && imRef(enemyDamageNetModify, i, j)) {
+                if (imRef(enemyDamageNetModify, i, j)) {
                     imRef(enemyDamageNet, i, j) += damage;
                 }
             }
         }
+    }
+
+    DamageLocation getRadiusDamage(Point2D pos, float radius, Agent* agent) {
+        //Profiler profiler("DamageGridF");
+        enemyDamageNetModify->clear();
+
+        int xmin = std::max(int((pos.x - radius) * damageNetPrecision), 0);
+        int ymin = std::max(int((pos.y - radius) * damageNetPrecision), 0);
+        int xmax = std::min(int((pos.x + radius) * damageNetPrecision), enemyDamageNetModify->width());
+        int ymax = std::min(int((pos.y + radius) * damageNetPrecision), enemyDamageNetModify->height());
+
+        fillDamageModify(pos, radius, agent);
+
+        DamageLocation d;
+
+        for (int i = xmin; i <= xmax; i++) {
+            for (int j = ymin; j <= ymax; j++) {
+                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                if (imRef(enemyDamageNetModify, i, j)) {
+                    //DamageLocation pointDmag = imRef(enemyDamageNet, i, j);
+                    d.updateHighest(imRef(enemyDamageNet, i, j));
+                }
+            }
+        }
+        return d;
     }
     
     float getPointDamage(int i, int j, UnitWrapper* unitWrap, float radius, Agent* agent) {

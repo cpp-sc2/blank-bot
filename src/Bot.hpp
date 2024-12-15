@@ -1104,10 +1104,10 @@ public:
 
         onStepProfiler.midLog("DamageGridReset");
 
-        if (0) {
+        if (1) {
             Profiler profiler("BigCircle");
-            Debug()->DebugSphereOut(P3D(Observation()->GetCameraPos()), 14);
-            UnitManager::setEnemyDamageRadius3(Observation()->GetCameraPos(), 14, { { 200,0,0,0,0,0,0 }, { 0,0,0,0,0,0,0 } }, this);
+            Debug()->DebugSphereOut(P3D(Observation()->GetCameraPos()), 3);
+            UnitManager::setEnemyDamageRadius3(Observation()->GetCameraPos(), 3, { { 200,0,0,0,0,0,0 }, { 0,0,0,0,0,0,0 } }, this);
         }
         //Debug()->DebugSphereOut(P3D(Observation()->GetCameraPos()), 0.6);
         //UnitManager::setEnemyDamageRadius(Observation()->GetCameraPos(), 0.6, {200,0,0,0,0,0}, this);
@@ -1171,7 +1171,7 @@ public:
 
         //displaySpacialHashGrid();
 
-        //displayEnemyDamageGrid();
+        displayEnemyDamageGrid();
 
         //pylonBuildingLoc();
         //listUnitWraps();

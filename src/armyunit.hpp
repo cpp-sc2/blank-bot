@@ -797,7 +797,7 @@ public:
     }
 
     virtual bool executeDamaged(Agent *agent, float health, float shields) {
-        if (shields < 0.05) {
+        if (shields < 0.05 && checkAbility(ABILITY_ID::EFFECT_BLINK_STALKER)) {
             // Units enemies = agent->Observation()->GetUnits(Unit::Alliance::Enemy);
             std::vector<DamageNet> enemiesnet;
             Point2D displace;
