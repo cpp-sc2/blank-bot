@@ -40,6 +40,7 @@ void ParseArguments(int argc, char* argv[], Options* options_)
             {"-x", "--OpponentId", "PlayerId of opponent", false},
         });
 
+
     arg_parser.Parse(argc, argv);
 
     std::string GamePortStr;
@@ -108,10 +109,20 @@ int main(int argc, char* argv[])
         //coordinator.StartGame("MicroAIArena/Tier1MicroAIArena_v1.SC2Map");
         coordinator.StartGame("Test/Empty.SC2Map");
 
-        bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, START_ME, 1, 6);
+        //bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, START_ME, 1, 6);
+        //bot.Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, START_OP, 2, 16);
+        //bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, START_OP, 2, 2);
 
-        bot.Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, START_OP, 2, 16);
-        bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, START_OP, 2, 2);
+        //bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, START_ME, 1, 9);
+        //bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_IMMORTAL, START_ME, 1, 2);
+        //bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_COLOSSUS, START_ME, 1, 2);
+        //bot.Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, START_OP, 2, 16);
+        //bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, START_OP, 2, 6);
+        //bot.Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, START_OP, 2, 14);
+
+        bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_OBSERVER, START_ME, 1, 13);
+        bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_COLOSSUS, START_ME, 1, 1);
+        bot.Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, START_OP, 2, 6);
 
         while (coordinator.Update()) {
         }

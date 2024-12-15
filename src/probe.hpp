@@ -29,17 +29,12 @@ Point2D getBuildingLocation(Agent *agent) {
                 float theta = ((float)std::rand()) * 2 * 3.1415926 / RAND_MAX;
                 float radius = ((float)std::rand()) * Aux::PYLON_RADIUS / RAND_MAX;
 
-                // float x = ((float)std::rand()) * game_info.width / RAND_MAX;
-                // float y = ((float)std::rand()) * game_info.height / RAND_MAX;
-
                 auto pylons = UnitManager::get(UNIT_TYPEID::PROTOSS_PYLON);
 
                 float x = std::cos(theta) * radius;
                 float y = std::sin(theta) * radius;
 
                 Point2D p = pylons[std::rand() % pylons.size()]->pos(agent) + Point2D{x, y};
-
-                // printf("%.1f,%.1f\n", x, y);
 
                 if (Aux::checkPlacementFull(p, 3, agent)) {
                     Aux::buildingLocations.push_back(p);
@@ -57,19 +52,36 @@ Point2D getBuildingLocation(Agent *agent) {
 Point2D getPylonLocation(Agent *agent) {
     if (Aux::pylonPointer >= Aux::pylonLocations.size()) {
         GameInfo game_info = agent->Observation()->GetGameInfo();
-
-        for (int i = 0; i < 5000; i++) {
-            float x = ((float)std::rand()) * game_info.width / RAND_MAX;
-            float y = ((float)std::rand()) * game_info.height / RAND_MAX;
-
-            Point2D p{x, y};
-
-            if ((i > 1000 || (imRef(Aux::influenceMap, (int)x, (int)y) != 0)) &&
-                Aux::checkPlacementFull(p, 2, agent)) {
-                Aux::pylonLocations.push_back(p);
+        auto pylons = UnitManager::get(UNIT_TYPEID::PROTOSS_PYLON);
+        Point2D diffuse[] = { {6, -7}, {-7, -6}, {-6, 7}, {7, 6} };
+        bool found = false;
+        for (int i = 0; i < UnitManager::get(UNIT_TYPEID::PROTOSS_PYLON).size(); i++) {
+            for (int d = 0; d < 4; d++) {
+                Point2D p = pylons[i]->pos(agent) + diffuse[d];
+                if (Aux::checkPlacementFull(p, 2, agent)) {
+                    Aux::pylonLocations.push_back(p);
+                    found = true;
+                    break;
+                }
+            }
+            if (found)
                 break;
-            } else if (i == 4999) {
-                return p;
+        }
+        if (!found) {
+            for (int i = 0; i < 5000; i++) {
+                float x = ((float)std::rand()) * game_info.width / RAND_MAX;
+                float y = ((float)std::rand()) * game_info.height / RAND_MAX;
+
+                Point2D p{ x, y };
+
+                if ((i > 1000 || (imRef(Aux::influenceMap, (int)x, (int)y) != 0)) &&
+                    Aux::checkPlacementFull(p, 2, agent)) {
+                    Aux::pylonLocations.push_back(p);
+                    break;
+                }
+                else if (i == 4999) {
+                    return p;
+                }
             }
         }
     }

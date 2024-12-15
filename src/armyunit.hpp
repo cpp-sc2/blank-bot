@@ -8,6 +8,7 @@
 #include "unit.hpp"
 #include "spacialhashgrid.hpp"
 #include "map2dFloat.hpp"
+#include "unitpriority.hpp"
 
 constexpr int BERTH = 1;
 
@@ -204,55 +205,55 @@ public:
         }
     }
 
-    float priorityAttack(UnitTypeID self_type, Weapon weapon, const Unit *opponent, Agent *agent) {  // HIGHER IS MORE DESIRABLE TO ATTACK
-        //auto *padad = new Profiler("pA_o");
-        //UnitTypes allData = Aux::allData(agent);
-        //UnitTypeData myStats = allData.at(static_cast<uint32_t>(self_type));
-        //UnitTypeData enemyStats = allData.at(static_cast<uint32_t>(opponent->unit_type));
-        UnitTypeData myStats = Aux::getStats(self_type, agent);
-        UnitTypeData enemyStats = Aux::getStats(opponent->unit_type, agent);
-        Weapon strongestWeapon;
-        float mostDmag = 0;
-        //delete padad;
-        //auto *pe = new Profiler("pA_eW");
-        for (int i = 0; i < enemyStats.weapons.size(); i++) {
-            if (Aux::hitsUnit(composition(agent), enemyStats.weapons[i].type)) {
-                float damageE = enemyStats.weapons[i].damage_;
-                for (int w = 0; w < enemyStats.weapons[i].damage_bonus.size(); w++) {
-                    for (int a = 0; a < myStats.attributes.size(); a++) {
-                        if (enemyStats.weapons[i].damage_bonus[w].attribute == myStats.attributes[a]) {
-                            damageE += enemyStats.weapons[i].damage_bonus[w].bonus;
-                        }
-                    }
-                }
-                if ((mostDmag / strongestWeapon.speed) < (damageE / enemyStats.weapons[i].speed)) {
-                    strongestWeapon = enemyStats.weapons[i];
-                    mostDmag = damageE;
-                }
-            }
-        }
-        //delete pe;
-        //auto pe2ads = Profiler("pA_mD");
-        float damage = weapon.damage_;
-        for (int w = 0; w < weapon.damage_bonus.size(); w++) {
-            for (int a = 0; a < enemyStats.attributes.size(); a++) {
-                if (weapon.damage_bonus[w].attribute == enemyStats.attributes[a]) {
-                    damage += weapon.damage_bonus[w].bonus;
-                }
-            }
-        }
-        float prioriT = (damage / weapon.speed) * (strongestWeapon.damage_ / strongestWeapon.speed) /
-                        (opponent->shield + opponent->health);
-        return prioriT;
-    }
+    //float priorityAttack(UnitTypeID self_type, Weapon weapon, const Unit *opponent, Agent *agent) {  // HIGHER IS MORE DESIRABLE TO ATTACK
+    //    //auto *padad = new Profiler("pA_o");
+    //    //UnitTypes allData = Aux::allData(agent);
+    //    //UnitTypeData myStats = allData.at(static_cast<uint32_t>(self_type));
+    //    //UnitTypeData enemyStats = allData.at(static_cast<uint32_t>(opponent->unit_type));
+    //    UnitTypeData myStats = Aux::getStats(self_type, agent);
+    //    UnitTypeData enemyStats = Aux::getStats(opponent->unit_type, agent);
+    //    Weapon strongestWeapon;
+    //    float mostDmag = 0;
+    //    //delete padad;
+    //    //auto *pe = new Profiler("pA_eW");
+    //    for (int i = 0; i < enemyStats.weapons.size(); i++) {
+    //        if (Aux::hitsUnit(composition(agent), enemyStats.weapons[i].type)) {
+    //            float damageE = enemyStats.weapons[i].damage_;
+    //            for (int w = 0; w < enemyStats.weapons[i].damage_bonus.size(); w++) {
+    //                for (int a = 0; a < myStats.attributes.size(); a++) {
+    //                    if (enemyStats.weapons[i].damage_bonus[w].attribute == myStats.attributes[a]) {
+    //                        damageE += enemyStats.weapons[i].damage_bonus[w].bonus;
+    //                    }
+    //                }
+    //            }
+    //            if ((mostDmag / strongestWeapon.speed) < (damageE / enemyStats.weapons[i].speed)) {
+    //                strongestWeapon = enemyStats.weapons[i];
+    //                mostDmag = damageE;
+    //            }
+    //        }
+    //    }
+    //    //delete pe;
+    //    //auto pe2ads = Profiler("pA_mD");
+    //    float damage = weapon.damage_;
+    //    for (int w = 0; w < weapon.damage_bonus.size(); w++) {
+    //        for (int a = 0; a < enemyStats.attributes.size(); a++) {
+    //            if (weapon.damage_bonus[w].attribute == enemyStats.attributes[a]) {
+    //                damage += weapon.damage_bonus[w].bonus;
+    //            }
+    //        }
+    //    }
+    //    float prioriT = (damage / weapon.speed) * (strongestWeapon.damage_ / strongestWeapon.speed) /
+    //                    (opponent->shield + opponent->health);
+    //    return prioriT;
+    //}
 
-    float priorityAvoid(UnitTypeID self_type, UnitTypeID opponent_type, Weapon weapon,
-                        Agent *agent) {  // HIGHER IS MORE DESIRABLE TO AVOID
-        //UnitTypes allData = agent->Observation()->GetUnitTypeData();
-        //UnitTypeData myStats = allData.at(static_cast<uint32_t>(self_type));
-        //UnitTypeData enemyStats = allData.at(static_cast<uint32_t>(opponent->unit_type));
-        return 1;
-    }
+    //float priorityAvoid(UnitTypeID self_type, UnitTypeID opponent_type, Weapon weapon,
+    //                    Agent *agent) {  // HIGHER IS MORE DESIRABLE TO AVOID
+    //    //UnitTypes allData = agent->Observation()->GetUnitTypeData();
+    //    //UnitTypeData myStats = allData.at(static_cast<uint32_t>(self_type));
+    //    //UnitTypeData enemyStats = allData.at(static_cast<uint32_t>(opponent->unit_type));
+    //    return 1;
+    //}
 
     float armyballRadius() {
         if (radius != 0)
@@ -281,7 +282,7 @@ public:
                 ignoreFrames--;
                 return false;
             }
-
+            /*
             //Tags rmy = Tags();
             //for (auto wrap : army) {
             //    rmy.push_back(wrap->self);
@@ -529,6 +530,7 @@ public:
                 
             }
             agent->Actions()->UnitCommand(join, ABILITY_ID::ATTACK, center(agent));
+            */
             ignoreFrames = 3;
             return false;
         } else if (mode == RETREAT) {
@@ -599,16 +601,17 @@ std::vector<Squad> squads = std::vector<Squad>();
 
 class ArmyUnit : public UnitWrapper {
 private:
-    Tag target;
+    
     UnitTypeData stats;
     bool is_flying;
+    int8_t targetFrames = 0;
 
 public:
-
+    UnitWrapper* targetWrap;
     Squad* squad;
 
     ArmyUnit(const Unit* unit) : UnitWrapper(unit) {
-        target = NullTag;
+        targetWrap = nullptr;
         if (squads.size() == 0) {
             squads.emplace_back();
         }
@@ -620,10 +623,28 @@ public:
 
     UnitTypeData getStats(Agent *agent) {
         if (stats.unit_type_id == UNIT_TYPEID::INVALID) {
-            UnitTypes allData = agent->Observation()->GetUnitTypeData();
-            stats = allData.at(static_cast<uint32_t>(type));
+            stats = Aux::getStats(type,agent);
         }
         return stats;
+    }
+
+    bool withSquad(Agent* agent) {
+        return Distance2D(pos(agent), squad->center(agent)) < squad->armyballRadius();
+    }
+
+    float priorityAttack(Weapon w, UnitWrapper* op, Agent *agent) {  // HIGHER IS MORE DESIRABLE TO ATTACK
+        if (Army::hitsUnit(w.type, Army::unitTypeTargetComposition(op->type))) {
+            return Army::Priority(type, op->type); //include health
+        }
+        return -1;
+    }
+
+    float priorityAvoid(UnitTypeID self_type, UnitTypeID opponent_type, Weapon weapon,
+        Agent* agent) {  // HIGHER IS MORE DESIRABLE TO AVOID
+        //UnitTypes allData = agent->Observation()->GetUnitTypeData();
+        //UnitTypeData myStats = allData.at(static_cast<uint32_t>(self_type));
+        //UnitTypeData enemyStats = allData.at(static_cast<uint32_t>(opponent->unit_type));
+        return 1;
     }
 
     virtual bool execute(Agent *agent) {
@@ -640,7 +661,94 @@ public:
     }
 
     virtual bool executeAttack(Agent *agent) {
-        
+        constexpr float extraRadius = 2.0F;
+        if (ignoreFrames > 0) {
+            if (targetWrap != nullptr && UnitManager::findEnemy(targetWrap->type, targetWrap->self) == nullptr) {
+                targetFrames = 0;
+                targetWrap = nullptr;
+                ignoreFrames = 0;
+            }
+            else {
+                ignoreFrames--;
+            }
+        }
+        Point2D position = pos(agent);
+        if (targetFrames > 0) {
+            targetFrames--;
+        }else{
+            targetWrap = nullptr;
+            UnitWrappers potentialTargets = UnitWrappers();
+            std::vector<float> potentialPriority = std::vector<float>();
+            for (Weapon w : getStats(agent).weapons) {
+                
+                for (UnitWrapper* enemy : SpacialHash::findInRadiusEnemy(position, w.range + radius + extraRadius, agent)) {
+                    float weaponRadius = w.range + radius + enemy->radius;
+                    float enemyRadius = Distance2D(position, enemy->pos(agent));
+                    if (Army::hitsUnit(w.type, Army::unitTypeTargetComposition(enemy->type))) {
+                        bool inserted = false;
+                        float priority = priorityAttack(w, enemy, agent);
+                        if (enemyRadius > weaponRadius) {
+                            priority += (weaponRadius - enemyRadius) * 0.1F;
+                        }
+                        if (potentialTargets.size() == 0) {
+                            inserted = true;
+                            potentialTargets.push_back(enemy);
+                            potentialPriority.push_back(priority);
+                        }
+                        for (int d = 0; d < potentialTargets.size(); d++) {
+                            if (potentialPriority[d] < priority) {
+                                potentialTargets.insert(potentialTargets.begin() + d, enemy);
+                                potentialPriority.insert(potentialPriority.begin() + d, priority);
+                                inserted = true;
+                                break;
+                            }
+                        }
+                        if (inserted == false) {
+                            potentialTargets.push_back(enemy);
+                            potentialPriority.push_back(priority);
+                        }
+                        break;
+                    }
+                }
+            }
+            if (potentialTargets.size() != 0) {
+                targetWrap = potentialTargets.front();
+                targetFrames = 10;
+            }
+        }
+        if (ignoreFrames == 0) {
+            if (targetWrap == nullptr) {
+                if (!withSquad(agent)) {
+                    agent->Actions()->UnitCommand(self, ABILITY_ID::ATTACK, squad->center(agent));
+                } else {
+                    agent->Actions()->UnitCommand(self, ABILITY_ID::ATTACK, squad->location);
+                }
+            }
+            else {
+                float dTtoEnemy = Distance2D(pos(agent), targetWrap->pos(agent)) / getStats(agent).movement_speed;
+                if (dTtoEnemy >= get(agent)->weapon_cooldown) {
+                    agent->Actions()->UnitCommand(self, ABILITY_ID::ATTACK, targetWrap->self);
+                }
+                else {
+                    
+                    //Point2D best = UnitManager::findMinimumDamage(this, 4, agent);
+                    Point2D direction = UnitManager::weightedVector(this, 1, agent);
+                    //printf("%.1f,%.1f min\n", (best - position).x, (best - position).y);
+                    //printf("%.1f,%.1f dir\n", direction.x, direction.y);
+                    //agent->Actions()->UnitCommand(self, ABILITY_ID::MOVE_MOVE, best);
+                    //agent->Debug()->DebugLineOut(Point3D{best.x,best.y,0}, Point3D{best.x,best.y, 53.0F});
+                    Point2D location = position - direction * 2;
+                    agent->Actions()->UnitCommand(self, ABILITY_ID::MOVE_MOVE, location);
+                    agent->Debug()->DebugLineOut(Point3D{ location.x,location.y,0 }, Point3D{ location.x,location.y, 53.0F });
+                    //for (int i = 0; i < 16; i++) {
+                    //    float x = cos(2.0 * M_PI * i / 16.0);
+                    //    float y = sin(2.0 * M_PI * i / 16.0);
+                    //    if()
+                    //}
+                }
+            }
+            ignoreFrames = 10;
+        }
         return false;
     }
 
@@ -686,10 +794,6 @@ class Stalker : public ArmyUnit {
 private:
 public:
     Stalker(const Unit *unit) : ArmyUnit(unit) {
-    }
-
-    virtual bool executeAttack(Agent *agent) {
-        return false;
     }
 
     virtual bool executeDamaged(Agent *agent, float health, float shields) {

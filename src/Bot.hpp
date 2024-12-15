@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include "jps.hpp"
-//#include "jps_old.hpp"
 #include "macro.hpp"
 #include "grid.hpp"
 #include "tools.hpp"
@@ -80,6 +79,22 @@ public:
             //}
             //printf("{%.1f}\n\n", length);
 
+            constexpr int numsteps = 6;
+            Units neut = Observation()->GetUnits(Unit::Alliance::Neutral, Aux::isMineral);
+            Units vesp = Observation()->GetUnits(Unit::Alliance::Neutral, Aux::isVespene);
+            neut.insert(neut.end(), vesp.begin(), vesp.end());
+            for (int i = 0; i < neut.size(); i++) {
+                if (Distance2D(point, neut[i]->pos) < 12) {
+                    Point2D dir = neut[i]->pos - point;
+                    for (int p = 0; p < numsteps; p++) {
+                        Point3D loc = point + p * (neut[i]->pos - point) / ((float)numsteps);
+                        Aux::addPlacement(loc, 2);
+                        //Debug()->DebugSphereOut(loc, 2);
+                    }
+                }
+            }
+            Aux::removePlacement(point, 5);
+
             if (rankedExpansions.size() == 0) {
                 rankedExpansions.push_back(point);
                 rankedExpansionDistance.push_back(length);
@@ -91,34 +106,9 @@ public:
                     break;
                 }
             }
+            
         }
-
-        //for (int j = 0; j < expansions.size() - 1; j++) {
-        //    if (expansions[j].x == 0 && expansions[j].y == 0)
-        //        continue;
-        //    if (rankedExpansions.size() == 0) {
-        //        rankedExpansions.push_back(expansions[j]);  // might be useless now
-        //        rankedExpansionDistance.push_back(expansionDistance[j]);
-        //        continue;
-        //    }
-        //    bool inserted = false;
-        //    for (int i = 0; i < rankedExpansions.size(); i++) {
-        //        if (rankedExpansionDistance[i] > expansionDistance[j]) {
-        //            rankedExpansions.insert(rankedExpansions.begin() + i, expansions[j]);  // might be useless now
-        //            rankedExpansionDistance.insert(rankedExpansionDistance.begin() + i, expansionDistance[j]);
-        //            inserted = true;
-        //            break;
-        //        }
-        //    }
-        //    if (!inserted) {
-        //        rankedExpansions.push_back(expansions[j]);  // might be useless now
-        //        rankedExpansionDistance.push_back(expansionDistance[j]);
-        //    }
-        //}
-
-        //for (int i = 0; i < rankedExpansions.size(); i++) {
-        //    printf("[%.1f,%.1f %.1f]\n", expansions[i].x, expansions[i].y, expansionDistance[i]);
-        //}
+        //Debug()->SendDebug();
     }
 
     void grid() {
@@ -343,13 +333,14 @@ public:
 
         #define BOX_BORDER_SD 0.002
 
-        float damageMult = 255.0 / 32768;
+        float damageMult = 255.0 / 10000;
 
         for (int w = wS; w < wE; w += 1) {
             for (int h = hS; h < hE; h += 1) {
                 Point2D p(w * blockSize, h * blockSize);
                 float boxHeight = 0;
                 Color c(255, 255, 255);
+                float height = Observation()->TerrainHeight(Point2D{ (w + 0.5F) * blockSize, (h + 0.5F) * blockSize });
 
                 if (damageNetEnemy(p).ground.normal != 0) {
                     uint8_t r = (uint8_t)(damageNetEnemy(p).ground.normal * damageMult);
@@ -360,9 +351,9 @@ public:
                 }
 
                 if (0 || !(c.r == 255 && c.g == 255 && c.b == 255)) {
-                    float height = Observation()->TerrainHeight(Point2D{ (w + 0.5F) * blockSize, (h + 0.5F) * blockSize });
+                    
                     Point3D corner1{ w * blockSize, h * blockSize, height + 0.01F };
-                    Point3D corner2{ (w + 1) * blockSize, (h + 1) * blockSize, height - 0.01F };
+                    Point3D corner2{ (w + 1) * blockSize, (h + 1) * blockSize, height + 0.01F };
                     Debug()->DebugBoxOut(corner1,corner2, c);
                 }
 
@@ -378,12 +369,19 @@ public:
                 }
 
                 if (0 || !(c.r == 255 && c.g == 255 && c.b == 255)) {
-                    float height = Observation()->TerrainHeight(Point2D{ (w + 0.5F) * blockSize, (h + 0.5F) * blockSize });
                     Point3D corner1{ w * blockSize, h * blockSize, height + 5.01F };
                     Point3D corner2{ (w + 1) * blockSize, (h + 1) * blockSize, height + 5.01F };
                     Debug()->DebugBoxOut(corner1, corner2, c);
                 }
                 #endif
+
+                float damage = imRef(UnitManager::enemyDamageNetTemp, w, h);
+
+                if (damage != 0.0) {
+                    Debug()->DebugTextOut(strprintf("%d", int(damage)),
+                        Point3D(w * blockSize, h * blockSize + 0.1F, height + 0.2F),
+                        Color(200, 90, 15), 8);
+                }
             }
         }
     }
@@ -620,7 +618,7 @@ public:
 
     //! Called when a game is started or restarted.
     virtual void OnGameStart() final {
-        //profilerPrint = false;
+        profilerPrint = false;
         profilerThreshold = 10;
         last_time = clock();
         int mapWidth = Observation()->GetGameInfo().width;
@@ -634,13 +632,7 @@ public:
 
         UnitManager::enemyDamageNet = new map2d<DamageLocation>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
         UnitManager::enemyDamageNetModify = new map2d<int8_t>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
-
-        //UnitManager::enemyDamageNetGround = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
-        //UnitManager::enemyDamageNetGroundLight = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
-        //UnitManager::enemyDamageNetGroundArmored = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
-        //UnitManager::enemyDamageNetAir = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
-        //UnitManager::enemyDamageNetAirLight = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
-        //UnitManager::enemyDamageNetAirArmored = new map2d<int>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
+        UnitManager::enemyDamageNetTemp = new map2d<float>(mapWidth * UnitManager::damageNetPrecision, mapHeight * UnitManager::damageNetPrecision, true);
 
         SpacialHash::initGrid(this);
         SpacialHash::initGridEnemy(this);
@@ -745,9 +737,13 @@ public:
         #endif
         
 
-        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, middle, 1, 6);
+        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, middle, 1, 9);
+        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_IMMORTAL, middle, 1, 2);
+        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_OBSERVER, middle, 1, 12);
+        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_COLOSSUS, middle, 1, 2);
         //Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, Observation()->GetGameInfo().enemy_start_locations[0], 2, 16);
-        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, Observation()->GetGameInfo().enemy_start_locations[0], 2, 2);
+        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, Observation()->GetGameInfo().enemy_start_locations[0], 2, 6);
+        //Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, Observation()->GetGameInfo().enemy_start_locations[0], 2, 14);
     }
 
     //! Called when a game has ended.
@@ -774,9 +770,11 @@ public:
             } else {
                 new ArmyUnit(unit);
             }
-        } else{
-            //UnitWrapper* u = new UnitWrapper(unit->tag, unit->unit_type);
-            //u->execute(this);
+        } else if (unit->unit_type == UNIT_TYPEID::PROTOSS_NEXUS) {
+            Nexus *n = new Nexus(unit);
+            //n->initVesp(this);
+        }
+        else{
             UnitWrapper* u = new UnitWrapper(unit);
             u->execute(this);
         }
@@ -887,11 +885,11 @@ public:
 
         SpacialHash::updateGrid(this);
 
-        onStepProfiler.midLog("SpacialHashUpdate");
+        onStepProfiler.midLog("SpacialFriendly");
 
         SpacialHash::updateGridEnemy(this);
 
-        onStepProfiler.midLog("SpacialHashUpdateEnemy");
+        onStepProfiler.midLog("SpacialEnemy");
 
         manageArmy();
 
@@ -908,9 +906,9 @@ public:
             s += strprintf("C:%.1f,%.1f Within?:%d S:%d\n", c.x, c.y, squads[i].withinRadius(this), squads[i].army.size());
             for (int a = 0; a < squads[i].army.size(); a++) {
                 squads[i].army[a]->execute(this);
-                s += strprintf("%s %.1fs %c\n", UnitTypeToName(squads[i].army[a]->type),
+                s += strprintf("%s %.1fs %Ix\n", UnitTypeToName(squads[i].army[a]->type),
                                squads[i].army[a]->get(this)->weapon_cooldown,
-                               squads[i].squadStates[squads[i].army[a]->self]);
+                               ((ArmyUnit*)(squads[i].army[a]))->targetWrap);
                 Debug()->DebugTextOut(strprintf("%c", squads[i].squadStates[squads[i].army[a]->self]),
                                       squads[i].army[a]->pos(this) + Point3D{s.size() * LETTER_DISP, 0.3, 0.5},
                                       Color(210, 55, 55), 8);
@@ -986,8 +984,10 @@ public:
 
                 Macro::addBuilding(ABILITY_ID::BUILD_GATEWAY, {-1,-1});
 
-                Macro::addBuilding(ABILITY_ID::BUILD_ASSIMILATOR,
-                                   Observation()->GetUnit(UnitManager::getVespene()[0]->self)->pos);
+                Macro::addBuilding(ABILITY_ID::BUILD_ASSIMILATOR, {-1,-1});
+
+                //Macro::addBuilding(ABILITY_ID::BUILD_ASSIMILATOR,
+                //                   Observation()->GetUnit(UnitManager::getVespene()[0]->self)->pos);
 
                 Macro::addBuilding(ABILITY_ID::BUILD_CYBERNETICSCORE, {-1, -1});
 
@@ -998,8 +998,10 @@ public:
 
                 Macro::addBuilding(ABILITY_ID::BUILD_NEXUS, P2D(rankedExpansions[0]));
 
-                Macro::addBuilding(ABILITY_ID::BUILD_ASSIMILATOR,
-                                   Observation()->GetUnit(UnitManager::getVespene()[1]->self)->pos);
+                Macro::addBuilding(ABILITY_ID::BUILD_ASSIMILATOR, { -1,-1 });
+
+                //Macro::addBuilding(ABILITY_ID::BUILD_ASSIMILATOR,
+                //                   Observation()->GetUnit(UnitManager::getVespene()[1]->self)->pos);
 
                 Macro::addBuilding(ABILITY_ID::BUILD_PYLON, {-1, -1});
                 Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_STALKER);
@@ -1021,7 +1023,11 @@ public:
 
                 Macro::addAction(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL, ABILITY_ID::RESEARCH_BLINK);
 
+                Macro::addBuilding(ABILITY_ID::BUILD_ASSIMILATOR, { -1,-1 });
+
                 Macro::addBuilding(ABILITY_ID::BUILD_ROBOTICSBAY, {-1, -1});
+
+                Macro::addBuilding(ABILITY_ID::BUILD_ASSIMILATOR, { -1,-1 });
 
                 Macro::addAction(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, ABILITY_ID::TRAIN_COLOSSUS);
                 Macro::addAction(UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY, ABILITY_ID::TRAIN_COLOSSUS);
@@ -1093,10 +1099,16 @@ public:
         //}
 
         UnitManager::enemyDamageNet->clear();
-        UnitManager::enemyDamageNetModify->clear();
+        //UnitManager::enemyDamageNetModify->clear();
+        //UnitManager::enemyDamageNetTemp->clear();
 
-        onStepProfiler.midLog("DamageGridUpdateReset");
+        onStepProfiler.midLog("DamageGridReset");
 
+        if (1) {
+            Profiler profiler("BigCircle");
+            Debug()->DebugSphereOut(P3D(Observation()->GetCameraPos()), 14);
+            UnitManager::setEnemyDamageRadius3(Observation()->GetCameraPos(), 14, { { 200,0,0,0,0,0,0 }, { 0,0,0,0,0,0,0 } }, this);
+        }
         //Debug()->DebugSphereOut(P3D(Observation()->GetCameraPos()), 0.6);
         //UnitManager::setEnemyDamageRadius(Observation()->GetCameraPos(), 0.6, {200,0,0,0,0,0}, this);
         //UnitManager::setEnemyDamageRadius(Observation()->GetCameraPos(), 0.6, {0,0,0,200,0,0 }, this);
@@ -1184,6 +1196,24 @@ public:
 
         onStepProfiler.midLog("Debug");
 
+        string profilestr = "";
+        for (auto itr = profilerMap.begin(); itr != profilerMap.end(); itr ++) {
+            string name = itr->first;
+            int strlen = name.size();
+            for (int i = 0; i < (20 - strlen); i++) {
+                name += " ";
+            }
+            string dtstr = strprintf("AVG:%.2f", ((float)itr->second) / profilerCoumt[itr->first]);
+            strlen = dtstr.size();
+            for (int i = 0; i < (15 - strlen); i++) {
+                dtstr += " ";
+            }
+            profilestr += (name + dtstr + strprintf("TOT:%lld/%d\n", itr->second, profilerCoumt[itr->first]));
+        }
+        Debug()->DebugTextOut(profilestr, Point2D(0.61, 0.51), Color(1, 212, 41), 8);
+
+        onStepProfiler.midLog("ProfilerLog");
+
         Debug()->SendDebug();
 
         onStepProfiler.midLog("DebugSend");
@@ -1197,7 +1227,7 @@ public:
             u->execute(this);
         } else {
             UnitWrapper* u = new UnitWrapper(unit);
-            u->execute(this);
+            //u->execute(this);
         }
     }
 
@@ -1257,6 +1287,12 @@ public:
         }
     }
 };
+
+
+
+//change damage net allocation to rotational rasterization + flood fill
+
+//every check, random find N positions to search, smallest of all, (slowly gets me a best position)
 
 //better stalker teleporting with new damagenet
 

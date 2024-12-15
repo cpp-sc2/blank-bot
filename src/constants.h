@@ -10,6 +10,9 @@
 //#include "tools.hpp"
 
 #define DISP ((size%2 == 0) ? 0.5F : 0.0F)
+#define GET(tag) agent->Observation()->GetUnit(tag)
+
+#define M_PI           3.14159265358979323846
 
 using namespace sc2;
 
@@ -680,7 +683,6 @@ bool isGroundTargetType(UnitTypeID unit_type) {
     }
 }
 
-
 bool isFlyingTarget(const Unit* unit) {
     return unit->unit_type == UNIT_TYPEID::PROTOSS_COLOSSUS || unit->is_flying;
 }
@@ -739,20 +741,20 @@ bool hitsUnit(const Unit *target, Composition weapon) {
     return false;
 }
 
-bool hitsUnit(Composition army, Composition weapon) {
-    if (weapon == Composition::Invalid || army == Composition::Invalid) {
-        printf("HITCHECK ARMY ERROR %d %d\n", weapon, army);
-        return false;
-    }
-    if (weapon == Composition::Any || army == Composition::Any) {
-        return true;
-    }
-    if ((weapon == Composition::Air && army == Composition::Air) ||
-        (weapon == Composition::Ground && army == Composition::Ground)) {
-        return true;
-    }
-    return false;
-}
+//bool hitsUnit(Composition army, Composition weapon) {
+//    if (weapon == Composition::Invalid || army == Composition::Invalid) {
+//        printf("HITCHECK ARMY ERROR %d %d\n", weapon, army);
+//        return false;
+//    }
+//    if (weapon == Composition::Any || army == Composition::Any) {
+//        return true;
+//    }
+//    if ((weapon == Composition::Air && army == Composition::Air) ||
+//        (weapon == Composition::Ground && army == Composition::Ground)) {
+//        return true;
+//    }
+//    return false;
+//}
 
 Point3D addKeepZ(Point3D &a, Point2D &b) {
     return {a.x + b.x, a.y + b.y, a.z};

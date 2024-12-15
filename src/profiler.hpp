@@ -1,6 +1,8 @@
 #pragma once
 #include <chrono>
 #include <iostream>
+#include <map>
+#include <string>
 
 using namespace std;
 using namespace std::chrono_literals;
@@ -9,6 +11,8 @@ bool profilerPrint = true;
 int profilerThreshold = 0;
 
 using timeus = std::chrono::time_point<std::chrono::steady_clock>;
+map<string, long long> profilerMap;
+map<string, int> profilerCoumt;
 
 class Profiler {
 public:
@@ -20,7 +24,7 @@ public:
     Profiler(string name_) {
         name = name_;
         start_time = std::chrono::steady_clock::now();
-        mid_time = std::chrono::steady_clock::now();
+        mid_time = start_time;
         enabled = true;
     }
 
@@ -38,6 +42,17 @@ public:
         mid_time = std::chrono::steady_clock::now();
     }
 
+    void addCall(string sname, long long dt) {
+        if (profilerMap.find(sname) == profilerMap.end()) {
+            profilerMap[sname] = dt;
+            profilerCoumt[sname] = 1;
+        }
+        else {
+            profilerMap[sname] += dt;
+            profilerCoumt[sname] += 1;
+        }
+    }
+
     void midLog(string mid) {
         if (!enabled)
             return;
@@ -46,6 +61,7 @@ public:
         if (profilerPrint && (dt > profilerThreshold)) {
             printf("<%s,%s - %.3fms>\n", name.c_str(), mid.c_str(), dt / 1000.0);
         }
+        addCall(mid, dt);
         mid_time = now;
     }
 
@@ -57,6 +73,7 @@ public:
         if (profilerPrint && (dt > profilerThreshold)) {
             printf("<%s - %.3fms>\n", name.c_str(), dt / 1000.0);
         }
+        addCall("-"+name, dt);
     }
 };
 

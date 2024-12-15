@@ -2,6 +2,7 @@
 #include <sc2api/sc2_api.h>
 #include <map>
 #include "map2dFloat.hpp"
+#include "unitpriority.hpp"
 
 using namespace sc2;
 using namespace std;
@@ -129,11 +130,12 @@ namespace UnitManager {
     map<UnitTypeID, UnitWrappers> neutrals;
     map<UnitTypeID, UnitWrappers> enemies;
 
-    constexpr int damageNetPrecision = 5;
+    constexpr int damageNetPrecision = 8;
     #define blockSize 1.0F/UnitManager::damageNetPrecision
 
     map2d<DamageLocation>* enemyDamageNet;
     map2d<int8_t>* enemyDamageNetModify;
+    map2d<float>* enemyDamageNetTemp;
 
     //map2d<int16_t>* enemyDamageNetGround;
     //map2d<int16_t>* enemyDamageNetGroundLight;
@@ -144,44 +146,7 @@ namespace UnitManager {
 
     #define damageNetEnemy(p) imRef(UnitManager::enemyDamageNet, int(p.x * UnitManager::damageNetPrecision), int(p.y * UnitManager::damageNetPrecision))
 
-    //DamageLocation getDamage(Point2D p) {
-    //    int16_t g = imRef(enemyDamageNetGround, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
-    //    int16_t gl = imRef(enemyDamageNetGroundLight, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
-    //    int16_t ga = imRef(enemyDamageNetGroundArmored, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
-    //    int16_t a = imRef(enemyDamageNetAir, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
-    //    int16_t al = imRef(enemyDamageNetAirLight, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
-    //    int16_t aa = imRef(enemyDamageNetAirArmored, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision));
-    //    return DamageLocation{ g,gl,ga,a,al,aa };
-    //}
-
-    //DamageLocation getDamageRaw(int i, int j) {
-    //    int16_t g = imRef(enemyDamageNetGround, i, j);
-    //    int16_t gl = imRef(enemyDamageNetGroundLight, i, j);
-    //    int16_t ga = imRef(enemyDamageNetGroundArmored, i, j);
-    //    int16_t a = imRef(enemyDamageNetAir, i, j);
-    //    int16_t al = imRef(enemyDamageNetAirLight, i, j);
-    //    int16_t aa = imRef(enemyDamageNetAirArmored, i, j);
-    //    return DamageLocation{ g,gl,ga,a,al,aa };
-    //}
-
-    //void setDamage(Point2D p, DamageLocation damage) {
-    //    imRef(enemyDamageNetGround, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.ground;
-    //    imRef(enemyDamageNetGroundLight, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.groundlight;
-    //    imRef(enemyDamageNetGroundArmored, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.groundarmored;
-    //    imRef(enemyDamageNetAir, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.air;
-    //    imRef(enemyDamageNetAirLight, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.airlight;
-    //    imRef(enemyDamageNetAirArmored, int(p.x * damageNetPrecision), int(p.y * damageNetPrecision)) = damage.airarmored;
-    //}
-
-    //void setDamageRaw(int i, int j, DamageLocation damage) {
-    //    imRef(enemyDamageNetGround, i, j) = damage.ground;
-    //    imRef(enemyDamageNetGroundLight, i, j) = damage.groundlight;
-    //    imRef(enemyDamageNetGroundArmored, i, j) = damage.groundarmored;
-    //    imRef(enemyDamageNetAir, i, j) = damage.air;
-    //    imRef(enemyDamageNetAirLight, i, j) = damage.airlight;
-    //    imRef(enemyDamageNetAirArmored, i, j) = damage.airarmored;
-    //}
-
+    
     void setEnemyDamageRadius2(Point2D pos, float radius, DamageLocation damage, Agent* agent) {
         int x = (pos.x - radius) * damageNetPrecision;
         int y = (pos.y - radius) * damageNetPrecision;
@@ -221,6 +186,7 @@ namespace UnitManager {
     }
 
     void setEnemyDamageRadius(Point2D pos, float radius, DamageLocation damage, Agent* agent) {
+        Profiler profiler("DamageGridF");
         //printf("5ize:%d\n", sizeof(DamageLocation));
         enemyDamageNetModify->clear();
         int x = (pos.x - radius) * damageNetPrecision;
@@ -252,6 +218,290 @@ namespace UnitManager {
         }
     }
 
+    void setEnemyDamageRadius3(Point2D pos, float radius, DamageLocation damage, Agent* agent) {
+        //Profiler profiler("DamageGridF");
+        
+        int center_x = pos.x * damageNetPrecision;
+        int center_y = pos.y * damageNetPrecision;
+
+        enemyDamageNetModify->clear();
+        int x = (pos.x - radius) * damageNetPrecision;
+        int y = (pos.y - radius) * damageNetPrecision;
+        int xmax = (pos.x + radius) * damageNetPrecision;
+        int ymax = (pos.y + radius) * damageNetPrecision;
+
+        Point2D starting = pos + Point2D{ radius, 0 };
+        int operating_x = int(starting.x * damageNetPrecision);
+        int operating_y = int(starting.y * damageNetPrecision);
+        imRef(enemyDamageNetModify, operating_x, operating_y) = 1;
+
+        int dir_x = 0;
+        int dir_y = 0;
+
+        for (int p = 0; p < (((radius+2) * damageNetPrecision)*6); p++) {
+            if (operating_x == center_x) {
+                if (operating_y > center_y) {
+                    dir_x = 1;
+                    dir_y = -1;
+                    //printf("TOP\n");
+                }
+                else if (operating_y < center_y) {
+                    dir_x = -1;
+                    dir_y = 1;
+                    //printf("BOT\n");
+                }
+                else {
+                    printf("CENTER X\n");
+                }
+            }else if (operating_y == center_y) {
+                if (operating_x > center_x) {
+                    if (dir_x != 0) {
+                        dir_x = 2;
+                        break;
+                    }
+                    dir_x = -1;
+                    dir_y = -1;
+                    //printf("RIGHT\n");
+                }
+                else if (operating_x < center_x) {
+                    dir_x = 1;
+                    dir_y = 1;
+                    //printf("LEFT\n");
+                }
+                else {
+                    printf("CENTER Y\n");
+                }
+            }
+            else {
+                //printf("CENTER XY %d\n",p);
+            }
+            int min_x = 0;
+            int min_y = 0;
+            float dist = -1;
+            for (int disp_x : {0, dir_x}) {
+                for (int disp_y : {0, dir_y}) {
+                    if (disp_x == 0 && disp_y == 0) {
+                        continue;
+                    }
+                    Point2D testPoint{ (operating_x + disp_x + 0.5F) / damageNetPrecision, (operating_y + disp_y + 0.5F) / damageNetPrecision };
+                    float distPoint = Distance2D(pos, testPoint);
+                    if (distPoint < (radius + 0.5F/ damageNetPrecision)) {
+                        if (dist == -1 || dist < distPoint) {
+                            dist = distPoint;
+                            min_x = disp_x;
+                            min_y = disp_y;
+                        }
+                    }
+                }
+            }
+            operating_x += min_x;
+            operating_y += min_y;
+            imRef(enemyDamageNetModify, operating_x, operating_y) = 1;
+        }
+
+        std::vector<Point2DI> open; 
+        open.push_back(Point2DI{ center_x,center_y });
+        while (open.size() != 0) {
+            //Profiler profiler("DamageGridF");
+            Point2DI pd = open.back();
+            open.pop_back();
+            imRef(enemyDamageNetModify, pd.x, pd.y) = 1;
+            //profiler.midLog("DGF-S");
+            if (pd.x != (enemyDamageNetModify->width() - 1) && !imRef(enemyDamageNetModify, pd.x + 1, pd.y)) {
+                open.push_back(Point2DI{ pd.x + 1,pd.y });
+            }
+            //profiler.midLog("DGF-R");
+            if (pd.y != (enemyDamageNetModify->height() - 1) && !imRef(enemyDamageNetModify, pd.x, pd.y + 1)) {
+                open.push_back(Point2DI{ pd.x,pd.y + 1 });
+            }
+            //profiler.midLog("DGF-U");
+            if (pd.x != 0 && !imRef(enemyDamageNetModify, pd.x - 1, pd.y)) {
+                open.push_back(Point2DI{ pd.x - 1,pd.y });
+            }
+            //profiler.midLog("DGF-L");
+            if (pd.y != 0 && !imRef(enemyDamageNetModify, pd.x, pd.y - 1)) {
+                open.push_back(Point2DI{ pd.x,pd.y - 1 });
+            }
+            //profiler.midLog("DGF-F");
+        }
+
+        for (int i = x - 1; i <= xmax + 1; i++) {
+            for (int j = y - 1; j <= ymax + 1; j++) {
+                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && imRef(enemyDamageNetModify, i, j)) {
+                    imRef(enemyDamageNet, i, j) += damage;
+                }
+            }
+        }
+    }
+    
+    float getPointDamage(int i, int j, UnitWrapper* unitWrap, float radius, Agent* agent) {
+        Composition comp = Army::unitTypeTargetComposition(unitWrap->type);
+        DamageLocation pointDamage = imRef(enemyDamageNet, i, j);
+        float damage = 0;
+        if (comp == Composition::Ground || comp == Composition::Any) {
+            damage += pointDamage.ground.normal;
+            for (Attribute a : Aux::getStats(unitWrap->type, agent).attributes) {
+                switch (a) {
+                case(Attribute::Light): {
+                    damage += pointDamage.ground.light;
+                }
+                case(Attribute::Armored): {
+                    damage += pointDamage.ground.armored;
+                }
+                case(Attribute::Biological): {
+                    damage += pointDamage.ground.biological;
+                }
+                case(Attribute::Mechanical): {
+                    damage += pointDamage.ground.mechanical;
+                }
+                case(Attribute::Massive): {
+                    damage += pointDamage.ground.massive;
+                }
+                case(Attribute::Psionic): {
+                    damage += pointDamage.ground.psionic;
+                }
+                }
+            }
+
+        }
+        if (comp == Composition::Air || comp == Composition::Any) {
+            damage += pointDamage.air.normal;
+            for (Attribute a : Aux::getStats(unitWrap->type, agent).attributes) {
+                switch (a) {
+                case(Attribute::Light): {
+                    damage += pointDamage.air.light;
+                }
+                case(Attribute::Armored): {
+                    damage += pointDamage.air.armored;
+                }
+                case(Attribute::Biological): {
+                    damage += pointDamage.air.biological;
+                }
+                case(Attribute::Mechanical): {
+                    damage += pointDamage.air.mechanical;
+                }
+                case(Attribute::Massive): {
+                    damage += pointDamage.air.massive;
+                }
+                case(Attribute::Psionic): {
+                    damage += pointDamage.air.psionic;
+                }
+                }
+            }
+
+        }
+        return damage/100.0;
+    }
+
+    Point2D findMinimumDamage(UnitWrapper* unitWrap, float radius, Agent* agent) {
+        //printf("5ize:%d\n", sizeof(DamageLocation));
+        enemyDamageNetTemp->clear();
+        Point2D pos = unitWrap->pos(agent);
+        int x = (pos.x - radius) * damageNetPrecision;
+        int y = (pos.y - radius) * damageNetPrecision;
+        int xmax = (pos.x + radius) * damageNetPrecision;
+        int ymax = (pos.y + radius) * damageNetPrecision;
+        //printf("%d - %d, %d - %d\n", x, xmax, y, ymax);
+        imRef(enemyDamageNetModify, int(pos.x * damageNetPrecision), int(pos.y * damageNetPrecision)) = 1;
+        for (int i = x; i <= xmax; i++) {
+            for (int j = y; j <= ymax; j++) {
+                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                float f = Distance2D(pos * damageNetPrecision, Point2D{ (float)i,(float)j });
+                if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && f < radius * damageNetPrecision) {
+                    //imRef(enemyDamageNetModify, i, j) = 1;
+                    //imRef(enemyDamageNetModify, i, j - 1) = 1;
+                    //imRef(enemyDamageNetModify, i - 1, j) = 1;
+                    //imRef(enemyDamageNetModify, i - 1, j - 1) = 1;
+                    if (imRef(enemyDamageNetTemp, i, j) == 0) {
+                        imRef(enemyDamageNetTemp, i, j) = getPointDamage(i, j, unitWrap, radius, agent);
+                    }
+                    if (imRef(enemyDamageNetTemp, i, j - 1) == 0) {
+                        imRef(enemyDamageNetTemp, i, j - 1) = getPointDamage(i, j - 1, unitWrap, radius, agent);
+                    }
+                    if (imRef(enemyDamageNetTemp, i - 1, j) == 0) {
+                        imRef(enemyDamageNetTemp, i - 1, j) = getPointDamage(i - 1, j, unitWrap, radius, agent);
+                    }
+                    if (imRef(enemyDamageNetTemp, i - 1, j - 1) == 0) {
+                        imRef(enemyDamageNetTemp, i - 1, j - 1) = getPointDamage(i - 1, j - 1, unitWrap, radius, agent);
+                    }
+                }
+            }
+        }
+        int mini = 0;
+        int minj = 0;
+        float mindamage = -1;
+        for (int i = x - 1; i <= xmax + 1; i++) {
+            for (int j = y - 1; j <= ymax + 1; j++) {
+                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && imRef(enemyDamageNetTemp, i - 1, j - 1) != 0) {
+                    float damage = imRef(enemyDamageNetTemp, i, j);
+                    /*printf("%.1f @ %.1f,%.1f\n", damage, i * blockSize, j * blockSize);*/
+                    if (mini == 0 || minj == 0 || mindamage == -1 || mindamage > damage) {
+                        mini = i;
+                        minj = j;
+                        mindamage = damage;
+                    }
+                }
+            }
+        }
+        printf("%.1f @ %.1f,%.1f\n", mindamage, mini * blockSize, minj * blockSize);
+        //agent->Debug()->DebugLineOut(Point3D{ mini * blockSize, minj * blockSize, 0.0F }, Point3D{ mini * blockSize, minj * blockSize, 13.0F });
+        return Point2D{ mini * blockSize, minj * blockSize };
+    }
+
+    Point2D weightedVector(UnitWrapper* unitWrap, float radius, Agent* agent) {
+        //printf("5ize:%d\n", sizeof(DamageLocation));
+        enemyDamageNetTemp->clear();
+        Point2D pos = unitWrap->pos(agent);
+        int x = (pos.x - radius) * damageNetPrecision;
+        int y = (pos.y - radius) * damageNetPrecision;
+        int xmax = (pos.x + radius) * damageNetPrecision;
+        int ymax = (pos.y + radius) * damageNetPrecision;
+        //printf("%d - %d, %d - %d\n", x, xmax, y, ymax);
+        imRef(enemyDamageNetModify, int(pos.x * damageNetPrecision), int(pos.y * damageNetPrecision)) = 1;
+        for (int i = x; i <= xmax; i++) {
+            for (int j = y; j <= ymax; j++) {
+                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                float f = Distance2D(pos * damageNetPrecision, Point2D{ (float)i,(float)j });
+                if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && f < radius * damageNetPrecision) {
+                    //imRef(enemyDamageNetModify, i, j) = 1;
+                    //imRef(enemyDamageNetModify, i, j - 1) = 1;
+                    //imRef(enemyDamageNetModify, i - 1, j) = 1;
+                    //imRef(enemyDamageNetModify, i - 1, j - 1) = 1;
+                    if (imRef(enemyDamageNetTemp, i, j) == 0) {
+                        imRef(enemyDamageNetTemp, i, j) = getPointDamage(i, j, unitWrap, radius, agent);
+                    }
+                    if (imRef(enemyDamageNetTemp, i, j - 1) == 0) {
+                        imRef(enemyDamageNetTemp, i, j - 1) = getPointDamage(i, j - 1, unitWrap, radius, agent);
+                    }
+                    if (imRef(enemyDamageNetTemp, i - 1, j) == 0) {
+                        imRef(enemyDamageNetTemp, i - 1, j) = getPointDamage(i - 1, j, unitWrap, radius, agent);
+                    }
+                    if (imRef(enemyDamageNetTemp, i - 1, j - 1) == 0) {
+                        imRef(enemyDamageNetTemp, i - 1, j - 1) = getPointDamage(i - 1, j - 1, unitWrap, radius, agent);
+                    }
+                }
+            }
+        }
+        Point2D vector;
+        //int count = 0;
+        for (int i = x - 1; i <= xmax + 1; i++) {
+            for (int j = y - 1; j <= ymax + 1; j++) {
+                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && imRef(enemyDamageNetModify, i, j) && agent->Observation()->IsPathable(Point2D{(i + 0.5F)*blockSize,(j + 0.5F) * blockSize })) {
+                    float damage = imRef(enemyDamageNetTemp, i, j);
+                    Point2D dir = normalize(Point2D{ (float)(int)(pos.x * damageNetPrecision), (float)(int)(pos.y * damageNetPrecision) });
+                    //printf("%.1f @ %.1f,%.1f\n", damage, i * blockSize, j * blockSize);
+                    vector += (dir * damage);
+                    //count++;
+                }
+            }
+        }
+        //agent->Debug()->DebugLineOut(Point3D{ mini * blockSize, minj * blockSize, 0.0F }, Point3D{ mini * blockSize, minj * blockSize, 13.0F });
+        return normalize(vector);
+    }
+    
     bool checkExist(UnitTypeID id) {
         return units.find(id) != units.end();
     }
@@ -389,11 +639,12 @@ UnitWrapper::UnitWrapper(const Unit *unit) : self(unit->tag), type(unit->unit_ty
         for (UnitWrapper* wrap : UnitManager::enemies[type]) {
             if (unit->tag == wrap->self) {
                 found = true;
+                printf("DuplicateEnemy O:%s N:%s\n", UnitTypeToName(wrap->type), UnitTypeToName(unit->unit_type));
                 break;
             }
         }
         if (found) {
-            printf("DuplicateEnemy\n");
+            //printf("DuplicateEnemy\n", UnitTypeToName());
         } else {
             UnitManager::enemies[type].push_back(this);
         }

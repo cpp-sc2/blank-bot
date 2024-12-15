@@ -152,9 +152,9 @@ namespace Macro {
         }
         macroProfiler.midLog("TopSetup");
         diagnostics = "";
-        for (int i = 0; i < topActions.size(); i ++) {
+        for (int iAction = 0; iAction < topActions.size(); iAction++) {
             macroProfiler.subScope();
-            MacroAction topAct = topActions[i];
+            MacroAction topAct = topActions[iAction];
             Units units = agent->Observation()->GetUnits(sc2::Unit::Alliance::Self, 
                 [topAct](const Unit &unit) -> bool { 
                 //return (unit.unit_type == topAct.unit_type) &&
@@ -166,7 +166,7 @@ namespace Macro {
             });
 
             diagnostics += strprintf("%s %s: ", UnitTypeToName(topAct.unit_type), AbilityTypeToName(topAct.ability));   
-            Point2D diag = Point2D(0.01, 0.01 + 0.02 * i);
+            Point2D diag = Point2D(0.01, 0.01 + 0.02 * iAction);
 
             //UnitTypes allData = agent->Observation()->GetUnitTypeData();
 
@@ -242,19 +242,40 @@ namespace Macro {
                         std::vector<float> dist;
                         for (int v = 0; v < vespenes.size(); v ++) {
                             
-                            if (((Vespene *)(vespenes[i]))->taken == 1) {
-                                vespenes.erase(vespenes.begin() + i);
-                                v--;
-                                continue;
-                            }
-                            float nexdist = -1;
                             for (auto n : UnitManager::get(UNIT_TYPEID::PROTOSS_NEXUS)) {
-                                float d = Distance2D(n->pos(agent), vespenes[i]->pos(agent));
-                                if (nexdist == -1 || d < nexdist) {
-                                    nexdist = d;
+                                float d = Distance2D(n->pos(agent), vespenes[v]->pos(agent));
+                                if (d < 12 && ((Vespene*)(vespenes[v]))->taken == 0) {
+                                    ((Vespene*)(vespenes[v]))->taken = 1;
+                                    topAct.pos = ((Vespene*)(vespenes[v]))->pos(agent);
+                                    actions[topAct.unit_type].front().pos = topAct.pos;
+                                    break;
                                 }
                             }
-                            dist.push_back(nexdist);
+                            if (topAct.pos != Point2D{ -1, -1 }) {
+                                break;
+                            }
+
+                            //if (((Vespene *)(vespenes[i]))->taken == 1) {
+                            //    /*vespenes.erase(vespenes.begin() + i);
+                            //    v--;
+                            //    continue;*/
+                            //    ((Vespene*)(vespenes[i]))->taken = 2;
+                            //    topAct.pos = ((Vespene*)(vespenes[i]))->pos(agent);
+                            //    actions[topAct.unit_type].front().pos = topAct.pos;
+                            //}
+                            //float nexdist = -1;
+                            //for (auto n : UnitManager::get(UNIT_TYPEID::PROTOSS_NEXUS)) {
+                            //    float d = Distance2D(n->pos(agent), vespenes[i]->pos(agent));
+                            //    if (nexdist == -1 || d < nexdist) {
+                            //        nexdist = d;
+                            //    }
+                            //}
+                            //dist.push_back(nexdist);
+                        }
+                        if (topAct.pos == Point2D{ -1, -1 }) {
+                            diagnostics += "NO VESPENE SLOT\n\n";
+                            macroProfiler.midLog("NO VESPENE SLOT");
+                            continue;
                         }
                     } else if (topAct.ability == ABILITY_ID::BUILD_NEXUS) {
 

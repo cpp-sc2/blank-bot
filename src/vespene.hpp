@@ -10,7 +10,7 @@
  private:
      
  public:
-     int taken;
+     int taken; //1 is macro taken, 2 is built;
      Vespene(const Unit* unit) : UnitWrapper(unit), taken(0) {
 
      }
