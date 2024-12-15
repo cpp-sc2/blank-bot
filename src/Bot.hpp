@@ -1104,7 +1104,7 @@ public:
 
         onStepProfiler.midLog("DamageGridReset");
 
-        if (1) {
+        if (0) {
             Profiler profiler("BigCircle");
             Debug()->DebugSphereOut(P3D(Observation()->GetCameraPos()), 14);
             UnitManager::setEnemyDamageRadius3(Observation()->GetCameraPos(), 14, { { 200,0,0,0,0,0,0 }, { 0,0,0,0,0,0,0 } }, this);
@@ -1155,7 +1155,7 @@ public:
                         d.ground.normal = w.damage_ / w.speed * 100;
                         d.ground += damage;
                     }
-                    UnitManager::setEnemyDamageRadius((*it2)->pos(this), (*it2)->radius + w.range, d, this);
+                    UnitManager::setEnemyDamageRadius3((*it2)->pos(this), (*it2)->radius + w.range, d, this);
                     //printf("%s %Ix set %.1f,%.1f  %.1f,%.1f  %.1f,%.1f\n", UnitTypeToName((*it2)->type), (*it2)->self, d.ground, d.air, d.groundlight, d.airlight, d.groundarmored, d.airarmored);
                 }
             }
@@ -1171,7 +1171,7 @@ public:
 
         //displaySpacialHashGrid();
 
-        displayEnemyDamageGrid();
+        //displayEnemyDamageGrid();
 
         //pylonBuildingLoc();
         //listUnitWraps();
@@ -1203,12 +1203,22 @@ public:
             for (int i = 0; i < (20 - strlen); i++) {
                 name += " ";
             }
-            string dtstr = strprintf("AVG:%.2f", ((float)itr->second) / profilerCoumt[itr->first]);
+            string dtstr = strprintf("AVG:%.2f", ((double)itr->second) / profilerCoumt[itr->first]);
             strlen = dtstr.size();
             for (int i = 0; i < (15 - strlen); i++) {
                 dtstr += " ";
             }
-            profilestr += (name + dtstr + strprintf("TOT:%lld/%d\n", itr->second, profilerCoumt[itr->first]));
+            string totstr = strprintf("TOT:%lld/%d", itr->second, profilerCoumt[itr->first]);
+            strlen = totstr.size();
+            for (int i = 0; i < (15 - strlen); i++) {
+                totstr += " ";
+            }
+            string lateststr = strprintf("LAT:%lld", profilerLast[itr->first].time());
+            strlen = lateststr.size();
+            for (int i = 0; i < (15 - strlen); i++) {
+                lateststr += " ";
+            }
+            profilestr += (name + lateststr + dtstr + totstr + "\n");
         }
         Debug()->DebugTextOut(profilestr, Point2D(0.61, 0.51), Color(1, 212, 41), 8);
 

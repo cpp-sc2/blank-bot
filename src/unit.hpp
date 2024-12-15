@@ -225,10 +225,10 @@ namespace UnitManager {
         int center_y = pos.y * damageNetPrecision;
 
         enemyDamageNetModify->clear();
-        int x = (pos.x - radius) * damageNetPrecision;
-        int y = (pos.y - radius) * damageNetPrecision;
-        int xmax = (pos.x + radius) * damageNetPrecision;
-        int ymax = (pos.y + radius) * damageNetPrecision;
+        int xmin = std::max(int((pos.x - radius) * damageNetPrecision), 0);
+        int ymin = std::max(int((pos.y - radius) * damageNetPrecision), 0);
+        int xmax = std::min(int((pos.x + radius) * damageNetPrecision), enemyDamageNetModify->width());
+        int ymax = std::min(int((pos.y + radius) * damageNetPrecision), enemyDamageNetModify->height());
 
         Point2D starting = pos + Point2D{ radius, 0 };
         int operating_x = int(starting.x * damageNetPrecision);
@@ -296,37 +296,57 @@ namespace UnitManager {
             }
             operating_x += min_x;
             operating_y += min_y;
-            imRef(enemyDamageNetModify, operating_x, operating_y) = 1;
+            if (operating_x >= 0 && operating_x < enemyDamageNetModify->width() && operating_y >= 0 && operating_y < enemyDamageNetModify->height()) {
+                imRef(enemyDamageNetModify, operating_x, operating_y) = 1;
+            }
+            
         }
 
-        std::vector<Point2DI> open; 
-        open.push_back(Point2DI{ center_x,center_y });
-        while (open.size() != 0) {
-            //Profiler profiler("DamageGridF");
-            Point2DI pd = open.back();
-            open.pop_back();
-            imRef(enemyDamageNetModify, pd.x, pd.y) = 1;
-            //profiler.midLog("DGF-S");
-            if (pd.x != (enemyDamageNetModify->width() - 1) && !imRef(enemyDamageNetModify, pd.x + 1, pd.y)) {
-                open.push_back(Point2DI{ pd.x + 1,pd.y });
+        //std::vector<Point2DI> open; 
+        //open.push_back(Point2DI{ center_x,center_y });
+        //while (open.size() != 0) {
+        //    //Profiler profiler("DamageGridF");
+        //    Point2DI pd = open.back();
+        //    open.pop_back();
+        //    imRef(enemyDamageNetModify, pd.x, pd.y) = 1;
+        //    //profiler.midLog("DGF-S");
+        //    if (pd.x != (enemyDamageNetModify->width() - 1) && !imRef(enemyDamageNetModify, pd.x + 1, pd.y)) {
+        //        open.push_back(Point2DI{ pd.x + 1,pd.y });
+        //    }
+        //    //profiler.midLog("DGF-R");
+        //    if (pd.y != (enemyDamageNetModify->height() - 1) && !imRef(enemyDamageNetModify, pd.x, pd.y + 1)) {
+        //        open.push_back(Point2DI{ pd.x,pd.y + 1 });
+        //    }
+        //    //profiler.midLog("DGF-U");
+        //    if (pd.x != 0 && !imRef(enemyDamageNetModify, pd.x - 1, pd.y)) {
+        //        open.push_back(Point2DI{ pd.x - 1,pd.y });
+        //    }
+        //    //profiler.midLog("DGF-L");
+        //    if (pd.y != 0 && !imRef(enemyDamageNetModify, pd.x, pd.y - 1)) {
+        //        open.push_back(Point2DI{ pd.x,pd.y - 1 });
+        //    }
+        //    //profiler.midLog("DGF-F");
+        //}
+        //int ystart = std::max(int((pos.y - radius) * damageNetPrecision), 0);
+        //int yend = std::min(int((pos.y + radius) * damageNetPrecision), enemyDamageNetModify->height());
+
+        for (int yi = ymin; yi < ymax; yi++) {
+            for (int xi = center_x; xi < xmax; xi++) {
+                if (imRef(enemyDamageNetModify, xi, yi)) {
+                    break;
+                }
+                imRef(enemyDamageNetModify, xi, yi) = 1;
             }
-            //profiler.midLog("DGF-R");
-            if (pd.y != (enemyDamageNetModify->height() - 1) && !imRef(enemyDamageNetModify, pd.x, pd.y + 1)) {
-                open.push_back(Point2DI{ pd.x,pd.y + 1 });
+            for (int xi = center_x - 1; xi > xmin; xi--) {
+                if (imRef(enemyDamageNetModify, xi, yi)) {
+                    break;
+                }
+                imRef(enemyDamageNetModify, xi, yi) = 1;
             }
-            //profiler.midLog("DGF-U");
-            if (pd.x != 0 && !imRef(enemyDamageNetModify, pd.x - 1, pd.y)) {
-                open.push_back(Point2DI{ pd.x - 1,pd.y });
-            }
-            //profiler.midLog("DGF-L");
-            if (pd.y != 0 && !imRef(enemyDamageNetModify, pd.x, pd.y - 1)) {
-                open.push_back(Point2DI{ pd.x,pd.y - 1 });
-            }
-            //profiler.midLog("DGF-F");
         }
 
-        for (int i = x - 1; i <= xmax + 1; i++) {
-            for (int j = y - 1; j <= ymax + 1; j++) {
+        for (int i = xmin - 1; i <= xmax + 1; i++) {
+            for (int j = ymin - 1; j <= ymax + 1; j++) {
                 //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && imRef(enemyDamageNetModify, i, j)) {
                     imRef(enemyDamageNet, i, j) += damage;

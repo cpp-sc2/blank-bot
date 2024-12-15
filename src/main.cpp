@@ -13,6 +13,7 @@
 #define MICRO_TEST 0
 #define START_ME Point2D{40,50}
 #define START_OP Point2D{60,50}
+//#define BUILD_FOR_LADDER
 
 #ifdef BUILD_FOR_LADDER
 namespace
@@ -62,30 +63,62 @@ void ParseArguments(int argc, char* argv[], Options* options_)
 
 int main(int argc, char* argv[])
 {
-    Options options;
-    ParseArguments(argc, argv, &options);
+    //Options options;
+    //ParseArguments(argc, argv, &options);
+
+    //sc2::Coordinator coordinator;
+    //Bot bot;
+
+    //size_t num_agents = 2;
+    //coordinator.SetParticipants({ CreateParticipant(sc2::Race::Random, &bot, "BlankBot") });
+
+    //std::cout << "Connecting to port " << options.GamePort << std::endl;
+    //coordinator.Connect(options.GamePort);
+    //coordinator.SetupPorts(num_agents, options.StartPort, false);
+
+    //// NB (alkurbatov): Increase speed of steps processing.
+    //// Disables ability to control your bot during game.
+    //// Recommended for competitions.
+    //coordinator.SetRawAffectsSelection(true);
+
+    //coordinator.JoinGame();
+    //coordinator.SetTimeoutMS(10000);
+    //std::cout << "Successfully joined game" << std::endl;
+
+    //while (coordinator.Update())
+    //{}
+
+    Options Options;
+    ParseArguments(argc, argv, &Options);
+
+    printf("PARSED OPTIONS: GamePort:%d StartPort:%d OppID:%s Server:%s\n", Options.GamePort, Options.StartPort, Options.OpponentId, Options.ServerAddress);
 
     sc2::Coordinator coordinator;
     Bot bot;
 
-    size_t num_agents = 2;
-    coordinator.SetParticipants({ CreateParticipant(sc2::Race::Random, &bot, "BlankBot") });
+    // Add the custom bot, it will control the players.
+    int num_agents = 2;
+    coordinator.SetParticipants({
+        CreateParticipant(sc2::Race::Protoss, &bot), });
+    //bot.SetOpponentId(Options.OpponentId);
 
-    std::cout << "Connecting to port " << options.GamePort << std::endl;
-    coordinator.Connect(options.GamePort);
-    coordinator.SetupPorts(num_agents, options.StartPort, false);
-
-    // NB (alkurbatov): Increase speed of steps processing.
-    // Disables ability to control your bot during game.
-    // Recommended for competitions.
+    // Request the feature layers to allow the use of the single drop micro
+    sc2::FeatureLayerSettings settings;
+    coordinator.SetFeatureLayers(settings);
+    // Connect to the game client
+    std::cout << "Connecting to port " << Options.GamePort << std::endl;
+    coordinator.Connect(Options.GamePort);
+    coordinator.SetupPorts(num_agents, Options.StartPort, false);
+    // Set the unit selection policy
+    // (if true, the selection will jump around everywhere so it can be harder to debug and doesn't allow a human to play at the same time)
     coordinator.SetRawAffectsSelection(true);
-
+    // Join the already started game
     coordinator.JoinGame();
-    coordinator.SetTimeoutMS(10000);
+    coordinator.SetTimeoutMS(120000);	// 2 min
     std::cout << "Successfully joined game" << std::endl;
-
-    while (coordinator.Update())
-    {}
+    // Step forward the game simulation.
+    while (coordinator.Update()) {
+    }
 
     return 0;
 }

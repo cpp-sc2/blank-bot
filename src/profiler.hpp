@@ -10,9 +10,31 @@ using namespace std::chrono_literals;
 bool profilerPrint = true;
 int profilerThreshold = 0;
 
+#define lastX 10
+
+struct lastfew {
+    long long last[lastX] = {0};
+    int arm = 0;
+
+    void add(long long l) {
+        last[arm] = l;
+        arm++;
+        if (arm == lastX)
+            arm = 0;
+    }
+
+    long long time() {
+        long long t = 0;
+        for (int i = 0; i < lastX; i++)
+            t += last[i];
+        return t;
+    }
+};
+
 using timeus = std::chrono::time_point<std::chrono::steady_clock>;
 map<string, long long> profilerMap;
 map<string, int> profilerCoumt;
+map<string, lastfew> profilerLast;
 
 class Profiler {
 public:
@@ -46,10 +68,12 @@ public:
         if (profilerMap.find(sname) == profilerMap.end()) {
             profilerMap[sname] = dt;
             profilerCoumt[sname] = 1;
+            profilerLast[sname].add(dt);
         }
         else {
             profilerMap[sname] += dt;
             profilerCoumt[sname] += 1;
+            profilerLast[sname].add(dt);
         }
     }
 
