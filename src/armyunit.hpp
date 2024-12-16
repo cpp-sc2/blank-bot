@@ -39,6 +39,9 @@ struct DamageNet {
     Weapon weapon;
 };
 
+constexpr int escapePointChecks = 10;
+constexpr float escapePointWeight = 10.0;
+constexpr float escapePointRadius = 5.0;
 
 
 class Squad {
@@ -604,7 +607,9 @@ private:
     
     UnitTypeData stats;
     bool is_flying;
-    int8_t targetFrames = 0;
+    //int8_t targetFrames = 0;
+    Point2D escapeLoc;
+    float escapeCost;
 
 public:
     UnitWrapper* targetWrap;
@@ -619,6 +624,8 @@ public:
         squad = &squads[0];
         is_flying = unit->is_flying; 
         squad->squadStates[self] = 'o';
+        escapeLoc = { 0,0 };
+        escapeCost = -1;
     }
 
     UnitTypeData getStats(Agent *agent) {
@@ -664,7 +671,7 @@ public:
         constexpr float extraRadius = 2.0F;
         if (ignoreFrames > 0) {
             if (targetWrap != nullptr && UnitManager::findEnemy(targetWrap->type, targetWrap->self) == nullptr) {
-                targetFrames = 0;
+                //targetFrames = 0;
                 targetWrap = nullptr;
                 ignoreFrames = 0;
             }
@@ -673,14 +680,13 @@ public:
             }
         }
         Point2D position = pos(agent);
-        if (targetFrames > 0) {
-            targetFrames--;
-        }else{
+
+        if (ignoreFrames == 0) {
             targetWrap = nullptr;
             UnitWrappers potentialTargets = UnitWrappers();
             std::vector<float> potentialPriority = std::vector<float>();
             for (Weapon w : getStats(agent).weapons) {
-                
+
                 for (UnitWrapper* enemy : SpacialHash::findInRadiusEnemy(position, w.range + radius + extraRadius, agent)) {
                     float weaponRadius = w.range + radius + enemy->radius;
                     float enemyRadius = Distance2D(position, enemy->pos(agent));
@@ -713,10 +719,8 @@ public:
             }
             if (potentialTargets.size() != 0) {
                 targetWrap = potentialTargets.front();
-                targetFrames = 10;
             }
-        }
-        if (ignoreFrames == 0) {
+
             if (targetWrap == nullptr) {
                 if (!withSquad(agent)) {
                     agent->Actions()->UnitCommand(self, ABILITY_ID::ATTACK, squad->center(agent));
@@ -731,20 +735,42 @@ public:
                 }
                 else {
                     
-                    //Point2D best = UnitManager::findMinimumDamage(this, 4, agent);
-                    Point2D direction = UnitManager::weightedVector(this, 1, agent);
-                    //printf("%.1f,%.1f min\n", (best - position).x, (best - position).y);
-                    //printf("%.1f,%.1f dir\n", direction.x, direction.y);
-                    //agent->Actions()->UnitCommand(self, ABILITY_ID::MOVE_MOVE, best);
-                    //agent->Debug()->DebugLineOut(Point3D{best.x,best.y,0}, Point3D{best.x,best.y, 53.0F});
-                    Point2D location = position - direction * 2;
-                    agent->Actions()->UnitCommand(self, ABILITY_ID::MOVE_MOVE, location);
-                    agent->Debug()->DebugLineOut(Point3D{ location.x,location.y,0 }, Point3D{ location.x,location.y, 53.0F });
-                    //for (int i = 0; i < 16; i++) {
-                    //    float x = cos(2.0 * M_PI * i / 16.0);
-                    //    float y = sin(2.0 * M_PI * i / 16.0);
-                    //    if()
-                    //}
+                    //Point2D direction = UnitManager::weightedVector(this, 1, agent);
+
+                    //Point2D location = position - direction * 2;
+
+                    for (int i = 0; i < escapePointChecks; i++) {
+                        float damageCost = 0;
+
+                        float theta = ((float)std::rand()) * 2 * 3.1415926 / RAND_MAX;
+                        float radius = ((float)std::rand()) * escapePointRadius / RAND_MAX;
+
+                        float x = std::cos(theta) * radius;
+                        float y = std::sin(theta) * radius;
+
+                        Point2DI escapePoint{ int(position.x + x), int(position.y + y) };
+
+                        auto came_from = jps(gridmap, position, escapePoint, Tool::euclidean, agent);
+                        vector<Location> pat = Tool::reconstruct_path(Location(position), escapePoint, came_from);
+                        if (pat.size() == 0) {
+                            i--;
+                            continue;
+                        }
+                        vector<Point2DI> path = fullPath(pat);
+
+                        for (Point2DI l : path) {
+                            damageCost += UnitManager::getRelevantDamage(this, UnitManager::getRadiusDamage(P2D(l) + Point2D{ 0.5F,0.5F }, radius, agent), agent);
+                        }
+
+                        if (escapeCost == -1 || damageCost < escapeCost) {
+                            escapeCost = damageCost;
+                            escapeLoc = { position.x + x, position.y + y };
+                        }
+                    }
+
+                    agent->Actions()->UnitCommand(self, ABILITY_ID::MOVE_MOVE, escapeLoc);
+
+                    agent->Debug()->DebugLineOut(Point3D{ escapeLoc.x,escapeLoc.y,0 }, Point3D{ escapeLoc.x,escapeLoc.y, 53.0F });
                 }
             }
             ignoreFrames = 10;

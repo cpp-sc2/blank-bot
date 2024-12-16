@@ -247,7 +247,32 @@ namespace UnitManager {
         }
     }
 
+    void fillDamageModify2(Point2D pos, float radius, Agent* agent) {
+        int x = (pos.x - radius) * damageNetPrecision;
+        int y = (pos.y - radius) * damageNetPrecision;
+        int xmax = (pos.x + radius) * damageNetPrecision;
+        int ymax = (pos.y + radius) * damageNetPrecision;
+        //printf("%d - %d, %d - %d\n", x, xmax, y, ymax);
+        imRef(enemyDamageNetModify, int(pos.x * damageNetPrecision), int(pos.y * damageNetPrecision)) = 1;
+        for (int i = x; i <= xmax; i++) {
+            for (int j = y; j <= ymax; j++) {
+                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                float f = Distance2D(pos * damageNetPrecision, Point2D{ (float)i,(float)j });
+                if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && f < radius * damageNetPrecision) {
+                    imRef(enemyDamageNetModify, i, j) = 1;
+                    imRef(enemyDamageNetModify, i, j - 1) = 1;
+                    imRef(enemyDamageNetModify, i - 1, j) = 1;
+                    imRef(enemyDamageNetModify, i - 1, j - 1) = 1;
+                }
+            }
+        }
+    }
+
     void fillDamageModify(Point2D pos, float radius, Agent* agent) {
+        if (radius < 1) {
+            fillDamageModify2(pos, radius, agent);
+            return;
+        }
         int center_x = pos.x * damageNetPrecision;
         int center_y = pos.y * damageNetPrecision;
 
@@ -341,6 +366,7 @@ namespace UnitManager {
         }
     }
 
+    
     void setEnemyDamageRadius3(Point2D pos, float radius, DamageLocation damage, Agent* agent) {
         //Profiler profiler("DamageGridF");
         enemyDamageNetModify->clear();
@@ -386,10 +412,9 @@ namespace UnitManager {
         }
         return d;
     }
-    
-    float getPointDamage(int i, int j, UnitWrapper* unitWrap, float radius, Agent* agent) {
+
+    float getRelevantDamage(UnitWrapper* unitWrap, DamageLocation pointDamage, Agent* agent) {
         Composition comp = Army::unitTypeTargetComposition(unitWrap->type);
-        DamageLocation pointDamage = imRef(enemyDamageNet, i, j);
         float damage = 0;
         if (comp == Composition::Ground || comp == Composition::Any) {
             damage += pointDamage.ground.normal;
@@ -443,7 +468,11 @@ namespace UnitManager {
             }
 
         }
-        return damage/100.0;
+        return damage;
+    }
+    
+    float getPointDamage(int i, int j, UnitWrapper* unitWrap, Agent* agent) {
+        return getRelevantDamage(unitWrap, imRef(enemyDamageNet, i, j), agent);
     }
 
     Point2D findMinimumDamage(UnitWrapper* unitWrap, float radius, Agent* agent) {
@@ -466,16 +495,16 @@ namespace UnitManager {
                     //imRef(enemyDamageNetModify, i - 1, j) = 1;
                     //imRef(enemyDamageNetModify, i - 1, j - 1) = 1;
                     if (imRef(enemyDamageNetTemp, i, j) == 0) {
-                        imRef(enemyDamageNetTemp, i, j) = getPointDamage(i, j, unitWrap, radius, agent);
+                        imRef(enemyDamageNetTemp, i, j) = getPointDamage(i, j, unitWrap, agent);
                     }
                     if (imRef(enemyDamageNetTemp, i, j - 1) == 0) {
-                        imRef(enemyDamageNetTemp, i, j - 1) = getPointDamage(i, j - 1, unitWrap, radius, agent);
+                        imRef(enemyDamageNetTemp, i, j - 1) = getPointDamage(i, j - 1, unitWrap, agent);
                     }
                     if (imRef(enemyDamageNetTemp, i - 1, j) == 0) {
-                        imRef(enemyDamageNetTemp, i - 1, j) = getPointDamage(i - 1, j, unitWrap, radius, agent);
+                        imRef(enemyDamageNetTemp, i - 1, j) = getPointDamage(i - 1, j, unitWrap, agent);
                     }
                     if (imRef(enemyDamageNetTemp, i - 1, j - 1) == 0) {
-                        imRef(enemyDamageNetTemp, i - 1, j - 1) = getPointDamage(i - 1, j - 1, unitWrap, radius, agent);
+                        imRef(enemyDamageNetTemp, i - 1, j - 1) = getPointDamage(i - 1, j - 1, unitWrap, agent);
                     }
                 }
             }
@@ -522,16 +551,16 @@ namespace UnitManager {
                     //imRef(enemyDamageNetModify, i - 1, j) = 1;
                     //imRef(enemyDamageNetModify, i - 1, j - 1) = 1;
                     if (imRef(enemyDamageNetTemp, i, j) == 0) {
-                        imRef(enemyDamageNetTemp, i, j) = getPointDamage(i, j, unitWrap, radius, agent);
+                        imRef(enemyDamageNetTemp, i, j) = getPointDamage(i, j, unitWrap, agent);
                     }
                     if (imRef(enemyDamageNetTemp, i, j - 1) == 0) {
-                        imRef(enemyDamageNetTemp, i, j - 1) = getPointDamage(i, j - 1, unitWrap, radius, agent);
+                        imRef(enemyDamageNetTemp, i, j - 1) = getPointDamage(i, j - 1, unitWrap, agent);
                     }
                     if (imRef(enemyDamageNetTemp, i - 1, j) == 0) {
-                        imRef(enemyDamageNetTemp, i - 1, j) = getPointDamage(i - 1, j, unitWrap, radius, agent);
+                        imRef(enemyDamageNetTemp, i - 1, j) = getPointDamage(i - 1, j, unitWrap, agent);
                     }
                     if (imRef(enemyDamageNetTemp, i - 1, j - 1) == 0) {
-                        imRef(enemyDamageNetTemp, i - 1, j - 1) = getPointDamage(i - 1, j - 1, unitWrap, radius, agent);
+                        imRef(enemyDamageNetTemp, i - 1, j - 1) = getPointDamage(i - 1, j - 1, unitWrap, agent);
                     }
                 }
             }

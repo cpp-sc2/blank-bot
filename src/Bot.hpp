@@ -808,19 +808,19 @@ public:
             delete u;
             if (unit->is_building) {
                 Aux::removePlacement(unit->pos, unit->unit_type);
-                UnitTypes allData = Observation()->GetUnitTypeData();
-                UnitTypeData unit_stats = allData.at(static_cast<uint32_t>(unit->unit_type));
-                GameInfo game_info = Observation()->GetGameInfo();
+                //UnitTypes allData = Observation()->GetUnitTypeData();
+                //UnitTypeData unit_stats = allData.at(static_cast<uint32_t>(unit->unit_type));
+                //GameInfo game_info = Observation()->GetGameInfo();
 
-                for (int i = std::max(0, int(unit->pos.x - unit_stats.sight_range) - 2);
-                     i < std::min(game_info.width, int(unit->pos.x + unit_stats.sight_range) + 2); i++) {
-                    for (int j = std::max(0, int(unit->pos.y - unit_stats.sight_range) - 2);
-                         j < std::min(game_info.height, int(unit->pos.y + unit_stats.sight_range) + 2); j++) {
-                        if (Distance2D(Point2D{i + 0.5F, j + 0.5F}, unit->pos) < unit_stats.sight_range) {
-                            imRef(Aux::influenceMap, i, j) -= 1;
-                        }
-                    }
-                }
+                //for (int i = std::max(0, int(unit->pos.x - unit_stats.sight_range) - 2);
+                //     i < std::min(game_info.width, int(unit->pos.x + unit_stats.sight_range) + 2); i++) {
+                //    for (int j = std::max(0, int(unit->pos.y - unit_stats.sight_range) - 2);
+                //         j < std::min(game_info.height, int(unit->pos.y + unit_stats.sight_range) + 2); j++) {
+                //        if (Distance2D(Point2D{i + 0.5F, j + 0.5F}, unit->pos) < unit_stats.sight_range) {
+                //            imRef(Aux::influenceMap, i, j) -= 1;
+                //        }
+                //    }
+                //}
             }
         } else if(unit->alliance == Unit::Alliance::Enemy) {
             UnitWrapper* u = UnitManager::findEnemy(unit->unit_type, unit->tag);
@@ -1298,14 +1298,13 @@ public:
     }
 };
 
-
-
-//change damage net allocation to rotational rasterization + flood fill
+//units should still retreat when no targets nearby
 
 //every check, random find N positions to search, smallest of all, (slowly gets me a best position)
 
 //better stalker teleporting with new damagenet
 
+//fix probe targetting to prioritize minerals with nexi
 
 //fully optimize
 
