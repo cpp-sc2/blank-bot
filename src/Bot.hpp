@@ -36,6 +36,7 @@ public:
     std::vector<double> rankedExpansionDistance;
     Point2DI staging_location;
     Point2D rally_point;
+    Point2DI enemy;
 
     map2d<int8_t>* path_zhang_suen;
 
@@ -559,7 +560,7 @@ public:
             #if MICRO_TEST
                 squads[0].attack(START_OP);
             #else
-                if ((squads[0].army.size() > 9 && squads[0].withinRadius(this)) || squads[0].army.size() > 11) {
+                if (squads[0].army.size() > 11) {
                     squads[0].attack(Observation()->GetGameInfo().enemy_start_locations[0]);
                 } else {
                     squads[0].attack(rally_point);
@@ -636,6 +637,8 @@ public:
 
         SpacialHash::initGrid(this);
         SpacialHash::initGridEnemy(this);
+
+        enemy = P2DI(Observation()->GetGameInfo().enemy_start_locations[0]) - Point2DI{ 0,1 };
 
         for (int i = 0; i < path_zhang_suen->width(); i++) {
             for (int j = 0; j < path_zhang_suen->height(); j++) {
@@ -901,20 +904,20 @@ public:
             s += strprintf("SQUAD%d %s %.1f,%.1f int[%.1f,%.1f]:\n", i, SquadModeToString(squads[i].mode),
                            squads[i].location.x, squads[i].location.y, squads[i].intermediateLoc.x,
                            squads[i].intermediateLoc.y);
-            Point2D c = squads[i].center(this);
-            Point2D cg = squads[i].center(this);
-            s += strprintf("C:%.1f,%.1f Within?:%d S:%d\n", c.x, c.y, squads[i].withinRadius(this), squads[i].army.size());
+            Point2D c = squads[i].coreCenter(this);
+            //Point2D cg = squads[i].center(this);
+            s += strprintf("C:%.1f,%.1f S:%d\n", c.x, c.y, squads[i].army.size());
             for (int a = 0; a < squads[i].army.size(); a++) {
                 squads[i].army[a]->execute(this);
-                s += strprintf("%s %.1fs %Ix\n", UnitTypeToName(squads[i].army[a]->type),
+                s += strprintf("%s %.1fs %Ix %c\n", UnitTypeToName(squads[i].army[a]->type),
                                squads[i].army[a]->get(this)->weapon_cooldown,
-                               ((ArmyUnit*)(squads[i].army[a]))->targetWrap);
+                               ((ArmyUnit*)(squads[i].army[a]))->targetWrap, squads[i].squadStates[squads[i].army[a]->self]);
                 Debug()->DebugTextOut(strprintf("%c", squads[i].squadStates[squads[i].army[a]->self]),
-                                      squads[i].army[a]->pos(this) + Point3D{s.size() * LETTER_DISP, 0.3, 0.5},
+                                      squads[i].army[a]->pos3D(this) + Point3D{s.size() * LETTER_DISP, 0.3, 0.5},
                                       Color(210, 55, 55), 8);
             }
             s += '\n';
-            Debug()->DebugSphereOut(P3D(squads[i].center(this)), squads[i].armyballRadius());
+            Debug()->DebugSphereOut(P3D(squads[i].coreCenter(this)), squads[i].armyballRadius());
             Debug()->DebugSphereOut(P3D(squads[i].intermediateLoc), 0.5, {30,230, 210});
         }
         Debug()->DebugTextOut(s, Point2D(0.71, 0.11), Color(1, 42, 212), 8);
@@ -1019,7 +1022,8 @@ public:
                 Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_STALKER);
                 Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_STALKER);
 
-            } else if (Observation()->GetGameLoop() == int(3.00 * 60 * 22.4)) {
+            } 
+            else if (Observation()->GetGameLoop() == int(3.00 * 60 * 22.4)) {
 
                 Macro::addAction(UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL, ABILITY_ID::RESEARCH_BLINK);
 
@@ -1080,7 +1084,7 @@ public:
             //if (squads[0].has(UNIT_TYPEID::PROTOSS_WARPPRISM)) {
             //    Macro::addAction(UNIT_TYPEID::PROTOSS_WARPPRISM, ABILITY_ID::MORPH_WARPPRISMPHASINGMODE);
             //}
-            Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_STALKER, squads[0].center(this));
+            Macro::addAction(UNIT_TYPEID::PROTOSS_GATEWAY, ABILITY_ID::TRAIN_STALKER, squads[0].coreCenter(this));
         }
 
         onStepProfiler.midLog("StalkerCreation");
@@ -1104,11 +1108,30 @@ public:
 
         onStepProfiler.midLog("DamageGridReset");
 
-        if (1) {
-            Profiler profiler("BigCircle");
+        if (0) {
+            //Profiler profiler("BigCircle");
             Debug()->DebugSphereOut(P3D(Observation()->GetCameraPos()), 3);
-            UnitManager::setEnemyDamageRadius3(Observation()->GetCameraPos(), 3, { { 200,0,0,0,0,0,0 }, { 0,0,0,0,0,0,0 } }, this);
+            UnitManager::setEnemyDamageRadius3(Observation()->GetCameraPos(), 3, { Damage(200, 0,0,0,0,0,0), Damage(0, 0,0,0,0,0,0) }, this);
         }
+
+        if (0) {
+            //Profiler profiler("JPS");
+            Debug()->DebugSphereOut(P3D(Observation()->GetCameraPos()), 1);
+            Point2DI cam = Observation()->GetCameraPos();
+            Point2DI end = { 0,0 };
+            auto came_from = jps(gridmap, rally_point, cam, Tool::euclidean, this, 1, &end);
+            vector<Location> pat = Tool::reconstruct_path(Location(rally_point), end, came_from);
+            if (pat.size() != 0) {
+                vector<Point2DI> path = fullPath(pat);
+                for (Point2DI p : path) {
+                    Debug()->DebugBoxOut(P3D(P2D(p)) + Point3D{ 0,0,-1 }, P3D(P2D(p)) + Point3D{ 1,1,0.3 }, { 180,30,190 });
+                }
+                for (Point2DI p : pat) {
+                    Debug()->DebugBoxOut(P3D(P2D(p)) + Point3D{ 0,0,-1 }, P3D(P2D(p)) + Point3D{ 1,1,0.3 }, { 40,30,250 });
+                }
+            }
+        }
+        onStepProfiler.midLog("OS-JPS");
         //Debug()->DebugSphereOut(P3D(Observation()->GetCameraPos()), 0.6);
         //UnitManager::setEnemyDamageRadius(Observation()->GetCameraPos(), 0.6, {200,0,0,0,0,0}, this);
         //UnitManager::setEnemyDamageRadius(Observation()->GetCameraPos(), 0.6, {0,0,0,200,0,0 }, this);
@@ -1121,8 +1144,8 @@ public:
                 // add psi storm (more damage the more time it has left, prioritzed more since its constant dmag)
                 // add helion line, lurker line
                 for (Weapon w : weapons) {
-                    DamageLocation d = { { 0,0,0,0,0,0,0 }, { 0,0,0,0,0,0,0 } };
-                    Damage damage = { 0,0,0,0,0,0,0 };
+                    DamageLocation d;
+                    Damage damage;
                     for (DamageBonus bonus : w.damage_bonus) {
                         if (bonus.attribute == Attribute::Light) {
                             damage.light += bonus.bonus / w.speed * 100;
@@ -1213,14 +1236,14 @@ public:
             for (int i = 0; i < (15 - strlen); i++) {
                 totstr += " ";
             }
-            string lateststr = strprintf("LAT:%lld", profilerLast[itr->first].time());
+            string lateststr = strprintf("LAT:%.3f", profilerLast[itr->first].time()/1000.0);
             strlen = lateststr.size();
             for (int i = 0; i < (15 - strlen); i++) {
                 lateststr += " ";
             }
             profilestr += (name + lateststr + dtstr + totstr + "\n");
         }
-        Debug()->DebugTextOut(profilestr, Point2D(0.61, 0.51), Color(1, 212, 41), 8);
+        Debug()->DebugTextOut(profilestr, Point2D(0.61, 0.41), Color(1, 212, 41), 8);
 
         onStepProfiler.midLog("ProfilerLog");
 
@@ -1297,6 +1320,8 @@ public:
         }
     }
 };
+
+//node
 
 //units should still retreat when no targets nearby
 

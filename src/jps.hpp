@@ -53,7 +53,7 @@ vector<Location> successors(const Grid& grid, const Location& current, const Loc
 }
 
 unordered_map<Location, Location> jps(const Grid& grid, const Point2DI& start_, const Point2DI& goal_,
-                                      heuristic_fn heuristic, Agent* agent, float range = 0) {
+                                      heuristic_fn heuristic, Agent* agent, float range = 0, Point2DI* end = nullptr) {
     PQLoc open_set;
     unordered_map<Location, Location> came_from{};
     unordered_map<Location, double> cost_so_far{};
@@ -69,6 +69,8 @@ unordered_map<Location, Location> jps(const Grid& grid, const Point2DI& start_, 
     while (!open_set.empty()) {
         const auto current{open_set.top().second};
         if (current == goal || (range != 0 && Distance2D(current, goal) < range)) {
+            if(end != nullptr)
+                *end = current;
             break;
         }
 

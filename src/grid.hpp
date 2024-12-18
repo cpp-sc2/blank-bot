@@ -93,7 +93,7 @@ using namespace std;
 std::vector<Point2DI> fullPath(std::vector<Location> path) noexcept {
     std::vector<Point2DI> pathout;
     pathout.push_back(path[0]);
-    for (int i = 0; i < path.size() - 1; i++) {
+    for (int i = 1; i < path.size(); i++) {
         for (int j = 0; j < 300; j++) {
             int x_d = 0;
             int y_d = 0;

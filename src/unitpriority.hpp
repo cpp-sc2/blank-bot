@@ -398,86 +398,95 @@ namespace Army {
         return 0;
 	}
 
-    Composition unitTypeTargetComposition(UnitTypeID op) {
-        switch (uint32_t(op)) {
-            //Terran
-            CASE(TERRAN_WIDOWMINE) { return Composition::Ground; }
-            CASE(TERRAN_WIDOWMINEBURROWED) { return Composition::Ground; }
-            CASE(TERRAN_SIEGETANK) { return Composition::Ground; }
-            CASE(TERRAN_SIEGETANKSIEGED) { return Composition::Ground; }
-            CASE(TERRAN_MULE) { return Composition::Ground; }
-            CASE(TERRAN_SCV) { return Composition::Ground; }
-            CASE(TERRAN_GHOST) { return Composition::Ground; }
-            CASE(TERRAN_REAPER) { return Composition::Ground; }
-            CASE(TERRAN_MARAUDER) { return Composition::Ground; }
-            CASE(TERRAN_MARINE) { return Composition::Ground; }
-            CASE(TERRAN_CYCLONE) { return Composition::Ground; }
-            CASE(TERRAN_HELLION) { return Composition::Ground; }
-            CASE(TERRAN_HELLIONTANK) { return Composition::Ground; }
-            CASE(TERRAN_THOR) { return Composition::Ground; }
-            CASE(TERRAN_MEDIVAC) { return Composition::Air; }
-            CASE(TERRAN_VIKINGFIGHTER) { return Composition::Air; }
-            CASE(TERRAN_VIKINGASSAULT) { return Composition::Ground; }
-            CASE(TERRAN_LIBERATORAG) { return Composition::Air; }
-            CASE(TERRAN_LIBERATOR) { return Composition::Air; }
-            CASE(TERRAN_RAVEN) { return Composition::Air; }
-            CASE(TERRAN_BATTLECRUISER) { return Composition::Air; }
-            CASE(TERRAN_MISSILETURRET) { return Composition::Ground; }
-            CASE(TERRAN_BUNKER) { return Composition::Ground; }
-            //Zerg
-            CASE(ZERG_DRONE) { return Composition::Ground; }
-            CASE(ZERG_ZERGLING) { return Composition::Ground; }
-            CASE(ZERG_BANELING) { return Composition::Ground; }
-            CASE(ZERG_BANELINGCOCOON) { return Composition::Ground; }
-            CASE(ZERG_ULTRALISK) { return Composition::Ground; }
-            CASE(ZERG_QUEEN) { return Composition::Ground; }
-            CASE(ZERG_ROACH) { return Composition::Ground; }
-            CASE(ZERG_RAVAGER) { return Composition::Ground; }
-            CASE(ZERG_RAVAGERCOCOON) { return Composition::Ground; }
-            CASE(ZERG_HYDRALISK) { return Composition::Ground; }
-            CASE(ZERG_HYDRALISKBURROWED) { return Composition::Ground; }
-            CASE(ZERG_LURKERMP) { return Composition::Ground; }
-            CASE(ZERG_LURKERMPEGG) { return Composition::Ground; }
-            CASE(ZERG_LURKERMPBURROWED) { return Composition::Ground; }
-            CASE(ZERG_INFESTOR) { return Composition::Ground; }
-            CASE(ZERG_BROODLORD) { return Composition::Air; }
-            CASE(ZERG_BROODLORDCOCOON) { return Composition::Air; }
-            CASE(ZERG_MUTALISK) { return Composition::Air; }
-            CASE(ZERG_CORRUPTOR) { return Composition::Air; }
-            CASE(ZERG_OVERLORD) { return Composition::Air; }
-            CASE(ZERG_OVERSEER) { return Composition::Air; }
-            CASE(ZERG_VIPER) { return Composition::Air; }
-            CASE(ZERG_LARVA) { return Composition::Ground; }
-            CASE(ZERG_EGG) { return Composition::Ground; }
-            CASE(ZERG_LOCUSTMP) { return Composition::Ground; }
-            //Protoss
-            CASE(PROTOSS_SENTRY) { return Composition::Ground; }
-            CASE(PROTOSS_PROBE) { return Composition::Ground; }
-            CASE(PROTOSS_HIGHTEMPLAR) { return Composition::Ground; }
-            CASE(PROTOSS_DARKTEMPLAR) { return Composition::Ground; }
-            CASE(PROTOSS_ADEPT) { return Composition::Ground; }
-            CASE(PROTOSS_ZEALOT) { return Composition::Ground; }
-            CASE(PROTOSS_STALKER) { return Composition::Ground; }
-            CASE(PROTOSS_IMMORTAL) { return Composition::Ground; }
-            CASE(PROTOSS_COLOSSUS) { return Composition::Any; }
-            CASE(PROTOSS_WARPPRISM) { return Composition::Air; }
-            CASE(PROTOSS_OBSERVER) { return Composition::Air; }
-            CASE(PROTOSS_DISRUPTOR) { return Composition::Ground; }
-            CASE(PROTOSS_PHOENIX) { return Composition::Air; }
-            CASE(PROTOSS_VOIDRAY) { return Composition::Air; }
-            CASE(PROTOSS_CARRIER) { return Composition::Air; }
-            CASE(PROTOSS_TEMPEST) { return Composition::Air; }
-            CASE(PROTOSS_MOTHERSHIP) { return Composition::Air; }
-            CASE(PROTOSS_ARCHON) { return Composition::Ground; }
-            CASE(PROTOSS_SHIELDBATTERY) { return Composition::Ground; }
-            CASE(PROTOSS_PHOTONCANNON) { return Composition::Ground; }
-            CASE(PROTOSS_PYLON) { return Composition::Ground; }
-            default: { 
-                printf("HITCHECK %s\n", UnitTypeToName(op));
-                return Composition::Invalid; 
-            }
-        }
-    }
+    //Composition unitTargetComposition(const Unit* op) {
+    //    if (op->unit_type == UNIT_TYPEID::PROTOSS_COLOSSUS) {
+    //        return Composition::Any;
+    //    }
+    //    if (op->is_flying)
+    //        return Composition::Air;
+    //    return Composition::Ground;
+    //}
+
+    //Composition unitTypeTargetComposition(UnitTypeID op) {
+    //    switch (uint32_t(op)) {
+    //        //Terran
+    //        CASE(TERRAN_WIDOWMINE) { return Composition::Ground; }
+    //        CASE(TERRAN_WIDOWMINEBURROWED) { return Composition::Ground; }
+    //        CASE(TERRAN_SIEGETANK) { return Composition::Ground; }
+    //        CASE(TERRAN_SIEGETANKSIEGED) { return Composition::Ground; }
+    //        CASE(TERRAN_MULE) { return Composition::Ground; }
+    //        CASE(TERRAN_SCV) { return Composition::Ground; }
+    //        CASE(TERRAN_GHOST) { return Composition::Ground; }
+    //        CASE(TERRAN_REAPER) { return Composition::Ground; }
+    //        CASE(TERRAN_MARAUDER) { return Composition::Ground; }
+    //        CASE(TERRAN_MARINE) { return Composition::Ground; }
+    //        CASE(TERRAN_CYCLONE) { return Composition::Ground; }
+    //        CASE(TERRAN_HELLION) { return Composition::Ground; }
+    //        CASE(TERRAN_HELLIONTANK) { return Composition::Ground; }
+    //        CASE(TERRAN_THOR) { return Composition::Ground; }
+    //        CASE(TERRAN_MEDIVAC) { return Composition::Air; }
+    //        CASE(TERRAN_VIKINGFIGHTER) { return Composition::Air; }
+    //        CASE(TERRAN_VIKINGASSAULT) { return Composition::Ground; }
+    //        CASE(TERRAN_LIBERATORAG) { return Composition::Air; }
+    //        CASE(TERRAN_LIBERATOR) { return Composition::Air; }
+    //        CASE(TERRAN_RAVEN) { return Composition::Air; }
+    //        CASE(TERRAN_BATTLECRUISER) { return Composition::Air; }
+    //        CASE(TERRAN_MISSILETURRET) { return Composition::Ground; }
+    //        CASE(TERRAN_BUNKER) { return Composition::Ground; }
+    //        //Zerg
+    //        CASE(ZERG_DRONE) { return Composition::Ground; }
+    //        CASE(ZERG_ZERGLING) { return Composition::Ground; }
+    //        CASE(ZERG_BANELING) { return Composition::Ground; }
+    //        CASE(ZERG_BANELINGCOCOON) { return Composition::Ground; }
+    //        CASE(ZERG_ULTRALISK) { return Composition::Ground; }
+    //        CASE(ZERG_QUEEN) { return Composition::Ground; }
+    //        CASE(ZERG_ROACH) { return Composition::Ground; }
+    //        CASE(ZERG_RAVAGER) { return Composition::Ground; }
+    //        CASE(ZERG_RAVAGERCOCOON) { return Composition::Ground; }
+    //        CASE(ZERG_HYDRALISK) { return Composition::Ground; }
+    //        CASE(ZERG_HYDRALISKBURROWED) { return Composition::Ground; }
+    //        CASE(ZERG_LURKERMP) { return Composition::Ground; }
+    //        CASE(ZERG_LURKERMPEGG) { return Composition::Ground; }
+    //        CASE(ZERG_LURKERMPBURROWED) { return Composition::Ground; }
+    //        CASE(ZERG_INFESTOR) { return Composition::Ground; }
+    //        CASE(ZERG_BROODLORD) { return Composition::Air; }
+    //        CASE(ZERG_BROODLORDCOCOON) { return Composition::Air; }
+    //        CASE(ZERG_MUTALISK) { return Composition::Air; }
+    //        CASE(ZERG_CORRUPTOR) { return Composition::Air; }
+    //        CASE(ZERG_OVERLORD) { return Composition::Air; }
+    //        CASE(ZERG_OVERSEER) { return Composition::Air; }
+    //        CASE(ZERG_VIPER) { return Composition::Air; }
+    //        CASE(ZERG_LARVA) { return Composition::Ground; }
+    //        CASE(ZERG_EGG) { return Composition::Ground; }
+    //        CASE(ZERG_LOCUSTMP) { return Composition::Ground; }
+    //        //Protoss
+    //        CASE(PROTOSS_SENTRY) { return Composition::Ground; }
+    //        CASE(PROTOSS_PROBE) { return Composition::Ground; }
+    //        CASE(PROTOSS_HIGHTEMPLAR) { return Composition::Ground; }
+    //        CASE(PROTOSS_DARKTEMPLAR) { return Composition::Ground; }
+    //        CASE(PROTOSS_ADEPT) { return Composition::Ground; }
+    //        CASE(PROTOSS_ZEALOT) { return Composition::Ground; }
+    //        CASE(PROTOSS_STALKER) { return Composition::Ground; }
+    //        CASE(PROTOSS_IMMORTAL) { return Composition::Ground; }
+    //        CASE(PROTOSS_COLOSSUS) { return Composition::Any; }
+    //        CASE(PROTOSS_WARPPRISM) { return Composition::Air; }
+    //        CASE(PROTOSS_OBSERVER) { return Composition::Air; }
+    //        CASE(PROTOSS_DISRUPTOR) { return Composition::Ground; }
+    //        CASE(PROTOSS_PHOENIX) { return Composition::Air; }
+    //        CASE(PROTOSS_VOIDRAY) { return Composition::Air; }
+    //        CASE(PROTOSS_CARRIER) { return Composition::Air; }
+    //        CASE(PROTOSS_TEMPEST) { return Composition::Air; }
+    //        CASE(PROTOSS_MOTHERSHIP) { return Composition::Air; }
+    //        CASE(PROTOSS_ARCHON) { return Composition::Ground; }
+    //        CASE(PROTOSS_SHIELDBATTERY) { return Composition::Ground; }
+    //        CASE(PROTOSS_PHOTONCANNON) { return Composition::Ground; }
+    //        CASE(PROTOSS_PYLON) { return Composition::Ground; }
+    //        default: { 
+    //            printf("HITCHECK %s\n", UnitTypeToName(op));
+    //            return Composition::Invalid; 
+    //        }
+    //    }
+    //}
 
     bool hitsUnit(Composition weapon, Composition target) {
         if (weapon == Composition::Invalid || target == Composition::Invalid) {
@@ -492,5 +501,83 @@ namespace Army {
             return true;
         }
         return false;
+    }
+
+    float maxWeaponRadius(UnitTypeID type) {
+        switch (uint32_t(type)) {
+            ////Terran
+            //CASE(TERRAN_WIDOWMINE) { return 5; }
+            //CASE(TERRAN_WIDOWMINEBURROWED) { return 5; }
+            //CASE(TERRAN_SIEGETANK) { return 13; }
+            //CASE(TERRAN_SIEGETANKSIEGED) { return 13; }
+            //CASE(TERRAN_MULE) { return 0.1; }
+            //CASE(TERRAN_SCV) { return 0.1; }
+            //CASE(TERRAN_GHOST) { return 6; }
+            //CASE(TERRAN_REAPER) { return 5; }
+            //CASE(TERRAN_MARAUDER) { return 6; }
+            //CASE(TERRAN_MARINE) { return 4; }
+            //CASE(TERRAN_CYCLONE) { return 9; }
+            //CASE(TERRAN_HELLION) { return 5; }
+            //CASE(TERRAN_HELLIONTANK) { return 2; }
+            //CASE(TERRAN_THOR) { return 11; }
+            //CASE(TERRAN_MEDIVAC) { return 0; }
+            //CASE(TERRAN_VIKINGFIGHTER) { return 9; }
+            //CASE(TERRAN_VIKINGASSAULT) { return 6; }
+            //CASE(TERRAN_LIBERATORAG) { return 13; }
+            //CASE(TERRAN_LIBERATOR) { return 13; }
+            //CASE(TERRAN_RAVEN) { return 10; }
+            //CASE(TERRAN_BATTLECRUISER) { return 6; }
+            //CASE(TERRAN_MISSILETURRET) { return 8; }
+            //CASE(TERRAN_BUNKER) { return 6; }
+            ////Zerg
+            //CASE(ZERG_DRONE) { return 0.1; }
+            //CASE(ZERG_ZERGLING) { return 0.1; }
+            //CASE(ZERG_BANELING) { return 2.2; }
+            //CASE(ZERG_BANELINGCOCOON) { return 2.2; }
+            //CASE(ZERG_ULTRALISK) { return Composition::Ground; }
+            //CASE(ZERG_QUEEN) { return Composition::Ground; }
+            //CASE(ZERG_ROACH) { return Composition::Ground; }
+            //CASE(ZERG_RAVAGER) { return Composition::Ground; }
+            //CASE(ZERG_RAVAGERCOCOON) { return Composition::Ground; }
+            //CASE(ZERG_HYDRALISK) { return Composition::Ground; }
+            //CASE(ZERG_HYDRALISKBURROWED) { return Composition::Ground; }
+            //CASE(ZERG_LURKERMP) { return Composition::Ground; }
+            //CASE(ZERG_LURKERMPEGG) { return Composition::Ground; }
+            //CASE(ZERG_LURKERMPBURROWED) { return Composition::Ground; }
+            //CASE(ZERG_INFESTOR) { return Composition::Ground; }
+            //CASE(ZERG_BROODLORD) { return Composition::Air; }
+            //CASE(ZERG_BROODLORDCOCOON) { return Composition::Air; }
+            //CASE(ZERG_MUTALISK) { return Composition::Air; }
+            //CASE(ZERG_CORRUPTOR) { return Composition::Air; }
+            //CASE(ZERG_OVERLORD) { return Composition::Air; }
+            //CASE(ZERG_OVERSEER) { return Composition::Air; }
+            //CASE(ZERG_VIPER) { return Composition::Air; }
+            //CASE(ZERG_LARVA) { return Composition::Ground; }
+            //CASE(ZERG_EGG) { return Composition::Ground; }
+            //CASE(ZERG_LOCUSTMP) { return Composition::Ground; }
+            //Protoss
+            CASE(PROTOSS_SENTRY) { return 5; }
+            CASE(PROTOSS_PROBE) { return 0.1; }
+            CASE(PROTOSS_HIGHTEMPLAR) { return 10; }
+            CASE(PROTOSS_DARKTEMPLAR) { return 0.1; }
+            CASE(PROTOSS_ADEPT) { return 4; }
+            CASE(PROTOSS_ZEALOT) { return 0.1; }
+            CASE(PROTOSS_STALKER) { return 6; }
+            CASE(PROTOSS_IMMORTAL) { return 6; }
+            CASE(PROTOSS_COLOSSUS) { return 9; }
+            CASE(PROTOSS_WARPPRISM) { return 0; }
+            CASE(PROTOSS_OBSERVER) { return 0; }
+            CASE(PROTOSS_DISRUPTOR) { return 13; }
+            CASE(PROTOSS_PHOENIX) { return 7; }
+            CASE(PROTOSS_VOIDRAY) { return 6; }
+            CASE(PROTOSS_CARRIER) { return 14; }
+            CASE(PROTOSS_TEMPEST) { return 14; }
+            CASE(PROTOSS_MOTHERSHIP) { return 7; }
+            CASE(PROTOSS_ARCHON) { return 3; }
+            CASE(PROTOSS_PHOTONCANNON) { return 7; }
+            default: {
+                return 0;
+            }
+        }
     }
 }

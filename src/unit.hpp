@@ -8,6 +8,8 @@ using namespace sc2;
 using namespace std;
 
 class UnitWrapper {
+private:
+    Composition c;
 public:
     Tag self;
     UnitTypeID type;
@@ -28,6 +30,19 @@ public:
     inline bool exists(Agent *agent);
 
     inline const Unit *get(Agent *agent);
+
+    Composition getComposition(Agent* agent) {
+        const Unit* selfUnit = get(agent);
+        if (selfUnit == nullptr) {
+            return c;
+        }
+        if (selfUnit->unit_type == UNIT_TYPEID::PROTOSS_COLOSSUS) {
+            return Composition::Any;
+        }
+        if (selfUnit->is_flying)
+            return Composition::Air;
+        return Composition::Ground;
+    }
 
     Point2D pos(Agent *agent);
     Point3D pos3D(Agent *agent);
@@ -84,6 +99,25 @@ struct Damage {
     damageval mechanical;
     damageval massive;
     damageval psionic;
+
+    Damage() {
+        normal = 0;
+        armored = 0;
+        light = 0;
+        biological = 0;
+        mechanical = 0;
+        massive = 0;
+        psionic = 0;
+    }
+
+    Damage(damageval normal,
+    damageval armored,
+    damageval light,
+    damageval biological,
+    damageval mechanical,
+    damageval massive,
+    damageval psionic) : normal(normal), armored(armored), light(light), biological(biological), mechanical(mechanical), massive(massive), psionic(psionic){
+    }
 
     void operator+=(const Damage& u) {
         normal += u.normal;
@@ -159,7 +193,7 @@ namespace UnitManager {
     map<UnitTypeID, UnitWrappers> neutrals;
     map<UnitTypeID, UnitWrappers> enemies;
 
-    constexpr int damageNetPrecision = 8;
+    constexpr int damageNetPrecision = 3;
     #define blockSize 1.0F/UnitManager::damageNetPrecision
 
     map2d<DamageLocation>* enemyDamageNet;
@@ -414,7 +448,7 @@ namespace UnitManager {
     }
 
     float getRelevantDamage(UnitWrapper* unitWrap, DamageLocation pointDamage, Agent* agent) {
-        Composition comp = Army::unitTypeTargetComposition(unitWrap->type);
+        Composition comp = unitWrap->getComposition(agent);
         float damage = 0;
         if (comp == Composition::Ground || comp == Composition::Any) {
             damage += pointDamage.ground.normal;
@@ -720,7 +754,7 @@ UnitWrapper::UnitWrapper(const Unit *unit) : self(unit->tag), type(unit->unit_ty
         for (UnitWrapper* wrap : UnitManager::enemies[type]) {
             if (unit->tag == wrap->self) {
                 found = true;
-                printf("DuplicateEnemy O:%s N:%s\n", UnitTypeToName(wrap->type), UnitTypeToName(unit->unit_type));
+                //printf("DuplicateEnemy O:%s N:%s\n", UnitTypeToName(wrap->type), UnitTypeToName(unit->unit_type));
                 break;
             }
         }

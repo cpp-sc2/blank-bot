@@ -27,7 +27,7 @@ struct lastfew {
         long long t = 0;
         for (int i = 0; i < lastX; i++)
             t += last[i];
-        return t;
+        return t/10;
     }
 };
 

@@ -53,6 +53,10 @@ Point2DI P2DI(const Point3D &p) {
     return Point2DI((int)p.x, (int)p.y);
 }
 
+Point2DI P2DI(const Point2D& p) {
+    return Point2DI((int)p.x, (int)p.y);
+}
+
 Point2D normalize(const Point2D& p) {
     return p / (std::sqrt(p.x * p.x + p.y * p.y));
  
@@ -725,21 +729,21 @@ Composition unitAsTarget(const Unit *unit) {
     return Composition::Invalid;
 }
 
-bool hitsUnit(const Unit *target, Composition weapon) {
-    Composition unit_comp = unitAsTarget(target);
-    if (weapon == Composition::Invalid || unit_comp == Composition::Invalid) {
-        printf("HITCHECK ERROR %d %d\n", weapon, unit_comp);
-        return false;
-    }
-    if (weapon == Composition::Any || unit_comp == Composition::Any) {
-        return true;
-    }
-    if ((weapon == Composition::Air && unit_comp == Composition::Air) ||
-        (weapon == Composition::Ground && unit_comp == Composition::Ground)) {
-        return true;
-    }
-    return false;
-}
+//bool hitsUnit(const Unit *target, Composition weapon) {
+//    Composition unit_comp = unitAsTarget(target);
+//    if (weapon == Composition::Invalid || unit_comp == Composition::Invalid) {
+//        printf("HITCHECK ERROR %d %d\n", weapon, unit_comp);
+//        return false;
+//    }
+//    if (weapon == Composition::Any || unit_comp == Composition::Any) {
+//        return true;
+//    }
+//    if ((weapon == Composition::Air && unit_comp == Composition::Air) ||
+//        (weapon == Composition::Ground && unit_comp == Composition::Ground)) {
+//        return true;
+//    }
+//    return false;
+//}
 
 //bool hitsUnit(Composition army, Composition weapon) {
 //    if (weapon == Composition::Invalid || army == Composition::Invalid) {
