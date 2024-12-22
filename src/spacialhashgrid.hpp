@@ -6,6 +6,7 @@
 
 #include "constants.h"
 #include "unit.hpp"
+#include "debugging.hpp"
 
 
 namespace SpacialHash {
@@ -63,7 +64,7 @@ void updateGrid(Agent *agent) {
                     }
                 }
             }
-            agent->Debug()->DebugSphereOut((*it2)->pos3D(agent), size);
+            DebugSphere(agent,(*it2)->pos3D(agent), size);
         }
     }
 }
@@ -155,7 +156,7 @@ void updateGridEnemy(Agent *agent) {
                     }
                 }
             }
-            agent->Debug()->DebugSphereOut((*it2)->pos3D(agent), size);
+            DebugSphere(agent,(*it2)->pos3D(agent), size);
         }
     }
 }

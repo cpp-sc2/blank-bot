@@ -14,6 +14,8 @@
 
 #define M_PI           3.14159265358979323846
 
+#define AP3D(p2) Point3D(p2.x, p2.y, agent->Observation()->TerrainHeight(p2))
+
 using namespace sc2;
 
 //enum Composition { NONE, AIR, GND, BOTH };
@@ -28,6 +30,27 @@ struct Cost {
     unsigned int energy = 0;
     int psi = 0;
 };
+
+template <class T>
+class dynarray {
+public:
+    int size;
+    T* data;
+
+    dynarray(int size) : size(size) {
+        data = new T[size];  // allocate space for image data
+    }
+
+    T operator[](int index) {
+        return data[index];
+    }
+
+    ~dynarray() {
+        delete[] data;
+    }
+};
+
+#define dyn(im, index) (im.data[index])
 
 template <typename... Args>
 std::string strprintf(const std::string &format, Args... args) {
@@ -64,6 +87,7 @@ Point2D normalize(const Point2D& p) {
 
 namespace Aux {
 
+map2d<int8_t>* pathingMap;
 map2d<int8_t> *buildingBlocked;
 map2d<int8_t> *influenceMap;
 map2d<int8_t> *influenceMapEnemy;
@@ -98,8 +122,24 @@ UnitTypeData getStats(UnitTypeID type, Agent *agent) {
     return statsMap[type];
 }
 
+static void loadPathables(Agent *agent) {
+    int mapWidth = agent->Observation()->GetGameInfo().width;
+    int mapHeight = agent->Observation()->GetGameInfo().height;
+    for (int i = 0; i < mapWidth; i++) {
+        for (int j = 0; j < mapHeight; j++) {
+            if (!agent->Observation()->IsPathable({ float(i), float(j) })) {
+                imRef(pathingMap, i, j) = 127;
+            }
+        }
+    }
+}
+
 static bool checkPathable(int x, int y, Agent *agent) {
-    return agent->Observation()->IsPathable({float(x), float(y)});
+    if (x < 0 || x >= pathingMap->width() || y < 0 || y >= pathingMap->height()) {
+        return false;
+    }
+    //return agent->Observation()->IsPathable({float(x), float(y)});
+    return imRef(pathingMap, x, y) == 0;
 }
 
 static bool isPylon(const Unit &unit) {

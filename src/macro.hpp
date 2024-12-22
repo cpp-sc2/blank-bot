@@ -93,7 +93,7 @@ namespace Macro {
     }
 
     void execute(Agent *agent) {
-        agent->Debug()->DebugTextOut(diagnostics, Point2D(0.03, 0.01), Color(100, 190, 215), 8);
+        DebugText(agent,diagnostics, Point2D(0.03, 0.01), Color(100, 190, 215), 8);
         uint32_t gt = agent->Observation()->GetGameLoop();
         if (gt < lastChecked + ACTION_CHECK_DT) {
             return;

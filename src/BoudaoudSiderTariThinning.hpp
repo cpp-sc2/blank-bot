@@ -104,13 +104,13 @@ void thinning_BST(map2d<int8_t>* map, Agent *agent) {
                     imRef(change, i, j) = 0;
                 }
                 if (imRef(map, i, j)) {
-                    agent->Debug()->DebugBoxOut(
+                    DebugBox(agent,
                         Point3D(i + BOX_BORDER, j + BOX_BORDER, agent->Observation()->TerrainHeight(Point2D{i + 0.5F, j + 0.5F}) + 0.01),
                         Point3D(i + 1 - BOX_BORDER, j + 1 - BOX_BORDER, agent->Observation()->TerrainHeight(Point2D{i + 0.5F, j + 0.5F})), {250, 200, 210});
                 }
             }
         }
-        agent->Debug()->SendDebug();
+        agent-> Debug()->SendDebug();
 
         if (!changedPixel) {
             break;

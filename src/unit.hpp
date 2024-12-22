@@ -218,7 +218,7 @@ namespace UnitManager {
         //printf("%d - %d, %d - %d\n", x, xmax, y, ymax);
         for (int i = x; i <= xmax; i++) {
             for (int j = y; j <= ymax; j++) {
-                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 bool activate = false;
                 for (float a = 0; a <= 1; a += 0.25) {
                     for (float b = 0; b <= 1; b += 0.25) {
@@ -260,7 +260,7 @@ namespace UnitManager {
         imRef(enemyDamageNetModify, int(pos.x * damageNetPrecision), int(pos.y * damageNetPrecision)) = 1;
         for (int i = x; i <= xmax; i++) {
             for (int j = y; j <= ymax; j++) {
-                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 float f = Distance2D(pos * damageNetPrecision, Point2D{ (float)i,(float)j });
                 if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && f < radius * damageNetPrecision) {
                     imRef(enemyDamageNetModify, i, j) = 1;
@@ -273,7 +273,7 @@ namespace UnitManager {
 
         for (int i = x-1; i <= xmax+1; i++) {
             for (int j = y-1; j <= ymax+1; j++) {
-                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && imRef(enemyDamageNetModify, i, j)) {
                     imRef(enemyDamageNet, i, j) += damage;
                 }
@@ -290,7 +290,7 @@ namespace UnitManager {
         imRef(enemyDamageNetModify, int(pos.x * damageNetPrecision), int(pos.y * damageNetPrecision)) = 1;
         for (int i = x; i <= xmax; i++) {
             for (int j = y; j <= ymax; j++) {
-                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 float f = Distance2D(pos * damageNetPrecision, Point2D{ (float)i,(float)j });
                 if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && f < radius * damageNetPrecision) {
                     imRef(enemyDamageNetModify, i, j) = 1;
@@ -414,7 +414,7 @@ namespace UnitManager {
 
         for (int i = xmin; i <= xmax; i++) {
             for (int j = ymin; j <= ymax; j++) {
-                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 if (imRef(enemyDamageNetModify, i, j)) {
                     imRef(enemyDamageNet, i, j) += damage;
                 }
@@ -437,7 +437,7 @@ namespace UnitManager {
 
         for (int i = xmin; i <= xmax; i++) {
             for (int j = ymin; j <= ymax; j++) {
-                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 if (imRef(enemyDamageNetModify, i, j)) {
                     //DamageLocation pointDmag = imRef(enemyDamageNet, i, j);
                     d.updateHighest(imRef(enemyDamageNet, i, j));
@@ -521,7 +521,7 @@ namespace UnitManager {
         imRef(enemyDamageNetModify, int(pos.x * damageNetPrecision), int(pos.y * damageNetPrecision)) = 1;
         for (int i = x; i <= xmax; i++) {
             for (int j = y; j <= ymax; j++) {
-                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 float f = Distance2D(pos * damageNetPrecision, Point2D{ (float)i,(float)j });
                 if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && f < radius * damageNetPrecision) {
                     //imRef(enemyDamageNetModify, i, j) = 1;
@@ -548,7 +548,7 @@ namespace UnitManager {
         float mindamage = -1;
         for (int i = x - 1; i <= xmax + 1; i++) {
             for (int j = y - 1; j <= ymax + 1; j++) {
-                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && imRef(enemyDamageNetTemp, i - 1, j - 1) != 0) {
                     float damage = imRef(enemyDamageNetTemp, i, j);
                     /*printf("%.1f @ %.1f,%.1f\n", damage, i * blockSize, j * blockSize);*/
@@ -561,7 +561,7 @@ namespace UnitManager {
             }
         }
         printf("%.1f @ %.1f,%.1f\n", mindamage, mini * blockSize, minj * blockSize);
-        //agent->Debug()->DebugLineOut(Point3D{ mini * blockSize, minj * blockSize, 0.0F }, Point3D{ mini * blockSize, minj * blockSize, 13.0F });
+        //DebugLine(agent,Point3D{ mini * blockSize, minj * blockSize, 0.0F }, Point3D{ mini * blockSize, minj * blockSize, 13.0F });
         return Point2D{ mini * blockSize, minj * blockSize };
     }
 
@@ -577,7 +577,7 @@ namespace UnitManager {
         imRef(enemyDamageNetModify, int(pos.x * damageNetPrecision), int(pos.y * damageNetPrecision)) = 1;
         for (int i = x; i <= xmax; i++) {
             for (int j = y; j <= ymax; j++) {
-                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 float f = Distance2D(pos * damageNetPrecision, Point2D{ (float)i,(float)j });
                 if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && f < radius * damageNetPrecision) {
                     //imRef(enemyDamageNetModify, i, j) = 1;
@@ -603,7 +603,7 @@ namespace UnitManager {
         //int count = 0;
         for (int i = x - 1; i <= xmax + 1; i++) {
             for (int j = y - 1; j <= ymax + 1; j++) {
-                //agent->Debug()->DebugLineOut(Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
                 if (i > 1 && i < enemyDamageNetModify->width() && j > 1 && j < enemyDamageNetModify->height() && imRef(enemyDamageNetModify, i, j) && agent->Observation()->IsPathable(Point2D{(i + 0.5F)*blockSize,(j + 0.5F) * blockSize })) {
                     float damage = imRef(enemyDamageNetTemp, i, j);
                     Point2D dir = normalize(Point2D{ (float)(int)(pos.x * damageNetPrecision), (float)(int)(pos.y * damageNetPrecision) });
@@ -613,7 +613,7 @@ namespace UnitManager {
                 }
             }
         }
-        //agent->Debug()->DebugLineOut(Point3D{ mini * blockSize, minj * blockSize, 0.0F }, Point3D{ mini * blockSize, minj * blockSize, 13.0F });
+        //DebugLine(agent,Point3D{ mini * blockSize, minj * blockSize, 0.0F }, Point3D{ mini * blockSize, minj * blockSize, 13.0F });
         return normalize(vector);
     }
     

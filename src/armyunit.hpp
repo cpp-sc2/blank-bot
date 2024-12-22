@@ -9,6 +9,7 @@
 #include "spacialhashgrid.hpp"
 #include "map2dFloat.hpp"
 #include "unitpriority.hpp"
+#include "debugging.hpp"
 
 constexpr int BERTH = 1;
 
@@ -423,7 +424,7 @@ public:
 
             damageCost = UnitManager::getRelevantDamage(this, UnitManager::getRadiusDamage(escapePointF, radius, agent), agent);
             //printf("%.1f,%.1f eC:%.1f dC:%.1fPRE\n",x,y, escapeCost, damageCost);
-            agent->Debug()->DebugLineOut(Point3D{ escapePointF.x,escapePointF.y,0 }, Point3D{ escapePointF.x,escapePointF.y, 53.0F });
+            DebugLine(agent,Point3D{ escapePointF.x,escapePointF.y,0 }, Point3D{ escapePointF.x,escapePointF.y, 53.0F });
             if (escapeCost == -1 || damageCost < escapeCost) {
                 escapeCost = damageCost;
                 escapeLoc = escapePointF;
@@ -584,7 +585,7 @@ public:
                 //    
                 //    damageCost = UnitManager::getRelevantDamage(this, UnitManager::getRadiusDamage(escapePointF, radius, agent), agent);
                 //    //printf("%.1f,%.1f eC:%.1f dC:%.1fPRE\n",x,y, escapeCost, damageCost);
-                //    agent->Debug()->DebugLineOut(Point3D{ escapePointF.x,escapePointF.y,0 }, Point3D{ escapePointF.x,escapePointF.y, 53.0F });
+                //    DebugLine(agent,Point3D{ escapePointF.x,escapePointF.y,0 }, Point3D{ escapePointF.x,escapePointF.y, 53.0F });
                 //    if (escapeCost == -1 || damageCost < escapeCost) {
                 //        escapeCost = damageCost;
                 //        escapeLoc = escapePointF;
@@ -601,7 +602,7 @@ public:
                     updateRandomMinDamagePoint(position, escapePointRadius*2, escapePointChecks, posTarget, agent);
                 }
                 agent->Actions()->UnitCommand(self, ABILITY_ID::MOVE_MOVE, escapeLoc);
-                agent->Debug()->DebugLineOut(Point3D{ escapeLoc.x,escapeLoc.y,0 }, Point3D{ escapeLoc.x,escapeLoc.y, 53.0F }, Colors::Purple);
+                DebugLine(agent,Point3D{ escapeLoc.x,escapeLoc.y,0 }, Point3D{ escapeLoc.x,escapeLoc.y, 53.0F }, Colors::Purple);
             }
             ignoreFrames = 0;
         }
@@ -707,7 +708,7 @@ public:
 
         //            agent->Actions()->UnitCommand(self, ABILITY_ID::MOVE_MOVE, escapeLoc);
 
-        //            agent->Debug()->DebugLineOut(Point3D{ escapeLoc.x,escapeLoc.y,0 }, Point3D{ escapeLoc.x,escapeLoc.y, 53.0F });
+        //            DebugLine(agent,Point3D{ escapeLoc.x,escapeLoc.y,0 }, Point3D{ escapeLoc.x,escapeLoc.y, 53.0F });
         //        }
         //    }
         //    ignoreFrames = 10;
@@ -796,7 +797,7 @@ public:
             }
             Point3D upos = pos3D(agent);
             Point3D blinkPos{upos.x + displace.x, upos.y + displace.y, upos.z};
-            agent->Debug()->DebugLineOut(upos, blinkPos, {24, 123, 250});
+            DebugLine(agent,upos, blinkPos, {24, 123, 250});
             agent->Actions()->UnitCommand(self, ABILITY_ID::EFFECT_BLINK_STALKER, blinkPos);
         }
         return false;
