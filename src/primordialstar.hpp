@@ -162,51 +162,6 @@ namespace PrimordialStar {
 
 	constexpr float displacementMinute = 0.1F;
 
-	void trimPathNodes(Agent* agent) {
-		//int maxSize = basePathNodes.size();
-		//for (int i = 0; i < maxSize; i++) {
-		//	map<Cardinal, vector<int>> nodes;
-		//	int conSize = basePathNodes[i]->connected.size();
-		//	nodes[UP_RT] = vector<int>();
-		//	nodes[DN_RT] = vector<int>();
-		//	nodes[DN_LT] = vector<int>();
-		//	nodes[UP_LT] = vector<int>();
-		//	for (int c = 0; c < basePathNodes[i]->connected.size(); c++) {
-		//		Point2D dif = basePathNodes[basePathNodes[i]->connected[c]]->rawPos()  - basePathNodes[i]->rawPos();
-		//		int id = basePathNodes[i]->connected[c];
-		//		if (abs(dif.x) == abs(dif.y)) {
-		//			if (dif.y > 0) {
-		//				if (dif.x > 0) {
-		//					nodes[UP_RT].push_back(id);
-		//				}
-		//				else if (dif.x < 0) {
-		//					nodes[UP_LT].push_back(id);
-		//				}
-		//				else {
-		//					printf("SHOULDNT HAPPEN\n");
-		//				}
-		//			}
-		//			else if (dif.y < 0) {
-		//				if (dif.x > 0) {
-		//					nodes[DN_RT].push_back(id);
-		//				}
-		//				else if (dif.x < 0) {
-		//					nodes[DN_LT].push_back(id);
-		//				}
-		//				else {
-		//					printf("SHOULDNT HAPPEN\n");
-		//				}
-		//			}
-		//			else {
-		//				//printf("SHOULDNT HAPPEN\n");
-		//			}
-		//		}
-		//	}
-
-		//	for(int i = 0)
-		//}
-	}
-
 //#define BASIC(i, j) pathables[i + 2][j + 2]
 //#define BASIC_UP(i, j) BASIC(i,j+1)
 //#define BASIC_UP_RT(i, j) BASIC(i+1,j+1)
@@ -290,16 +245,16 @@ namespace PrimordialStar {
 					//bool basic_dn_lt = dn && dn_lt && lt;
 					//bool basic_up_lt = up && up_lt && lt;
 
-					if (check_UP_RT(i,j)) {
+					if (check_UP_RT(i, j) && ((Aux::checkPathable(i - 1, j + 1, agent) || !check_UP_RT(i - 1, j + 1)) || (Aux::checkPathable(i + 1, j - 1, agent) || !check_UP_RT(i + 1, j - 1)))) {
 						new PathNode(Point2D{ (float)(i + 1 + displacementMinute), (float)(j + 1 + displacementMinute) }, DN_LT);
 					}
-					if (check_DN_RT(i, j)) {
+					if (check_DN_RT(i, j) && ((Aux::checkPathable(i - 1, j - 1, agent) || !check_DN_RT(i - 1, j - 1)) || (Aux::checkPathable(i + 1, j + 1, agent) || !check_DN_RT(i + 1, j + 1)))) {
 						new PathNode(Point2D{ (float)(i + 1 + displacementMinute), (float)(j - displacementMinute) }, UP_LT);
 					}
-					if (check_DN_LT(i, j)) {
+					if (check_DN_LT(i, j) && ((Aux::checkPathable(i - 1, j + 1, agent) || !check_DN_LT(i - 1, j + 1)) || (Aux::checkPathable(i + 1, j - 1, agent) || !check_DN_LT(i + 1, j - 1)))) {
 						new PathNode(Point2D{ (float)(i - displacementMinute), (float)(j - displacementMinute) }, UP_RT);
 					}
-					if (check_UP_LT(i, j)) {
+					if (check_UP_LT(i, j) && ((Aux::checkPathable(i - 1, j - 1, agent) || !check_UP_LT(i - 1, j - 1)) || (Aux::checkPathable(i + 1, j + 1, agent) || !check_UP_LT(i + 1, j + 1)))) {
 						new PathNode(Point2D{ (float)(i - displacementMinute), (float)(j + 1 + displacementMinute) }, DN_RT);
 					}
 				}
