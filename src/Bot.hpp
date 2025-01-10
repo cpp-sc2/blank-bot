@@ -24,6 +24,8 @@
 #define START_ME Point2D{40,50}
 #define START_OP Point2D{60,50}
 
+#define MICRO_TEST_2 1
+
 using namespace sc2;
 
 class Bot : public Agent {
@@ -414,14 +416,22 @@ public:
         //    DebugLine(this, P3D(rally_point) + Point3D{ 0,0,1 }, P3D(Observation()->GetCameraPos()) + Point3D{ 0,0,1 }, Colors::Red);
         //}
         Profiler* p = new Profiler("pathfind");
-        vector<Point2D> path = PrimordialStar::getPath(Observation()->GetCameraPos(), rally_point, 0, this);
+        vector<Point2D> path = PrimordialStar::getPath(Observation()->GetCameraPos(), rally_point, 0.5, this);
         delete p;
 
         DebugText(this, strprintf("%d", path.size()), P3D(Observation()->GetCameraPos()) + Point3D{ 0,0,1 });
         if (path.size() != 0) {
+            float l2 = 0;
             for (int i = 0; i < path.size() - 1; i++) {
+                l2 += Distance2D(path[i], path[i + 1]);
                 DebugLine(this, P3D(path[i]) + Point3D{ 0,0,1 }, P3D(path[i + 1]) + Point3D{ 0,0,1 }, Colors::Green);
             }
+            vector<Point2D> subpoints = PrimordialStar::stepPointsAlongPath(path, 1.0F);
+            for (Point2D p : subpoints) {
+                DebugSphere(this, P3D(p), 0.5, { 61,102,220 });
+            }
+            //DebugSphere(this, P3D(PrimordialStar::distanceAlongPath(path, 5.5)), 0.5, {21,42,120});
+            printf("len: %.1f len2: %.1f\n", PrimordialStar::getPathLength(Observation()->GetCameraPos(), rally_point, 0.5, this), l2);
         }
         else {
             DebugLine(this, P3D(rally_point) + Point3D{ 0,0,1 }, P3D(Observation()->GetCameraPos()) + Point3D{ 0,0,1 }, Colors::Red);
@@ -601,6 +611,8 @@ public:
         if (danger.size() == 0) {
             #if MICRO_TEST
                 squads[0].attack(START_OP);
+            #elif MICRO_TEST_2
+                squads[0].attack(Observation()->GetGameInfo().enemy_start_locations[0]);
             #else
                 if (squads[0].army.size() > 11) {
                     squads[0].attack(Observation()->GetGameInfo().enemy_start_locations[0]);
@@ -789,15 +801,22 @@ public:
         #else
             squads[0].attack(rally_point);
         #endif
-        
 
         //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, middle, 1, 9);
-        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_IMMORTAL, middle, 1, 2);
-        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_OBSERVER, middle, 1, 12);
-        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_COLOSSUS, middle, 1, 2);
-        //Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, Observation()->GetGameInfo().enemy_start_locations[0], 2, 16);
-        //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, Observation()->GetGameInfo().enemy_start_locations[0], 2, 6);
-        //Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, Observation()->GetGameInfo().enemy_start_locations[0], 2, 14);
+
+        #if MICRO_TEST_2
+
+            //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, middle, 1, 9);
+            //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_IMMORTAL, middle, 1, 2);
+            ////Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_OBSERVER, middle, 1, 12);
+            //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_COLOSSUS, middle, 1, 2);
+            //Debug()->DebugCreateUnit(UNIT_TYPEID::ZERG_ZERGLING, Observation()->GetGameInfo().enemy_start_locations[0], 2, 16);
+            //Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, Observation()->GetGameInfo().enemy_start_locations[0], 2, 6);
+            //Debug()->DebugCreateUnit(UNIT_TYPEID::TERRAN_MARINE, Observation()->GetGameInfo().enemy_start_locations[0], 2, 14);
+
+            Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_STALKER, middle, 1, 1);
+            Debug()->DebugCreateUnit(UNIT_TYPEID::PROTOSS_ADEPT, Observation()->GetGameInfo().enemy_start_locations[0], 2, 2);
+        #endif
     }
 
     //! Called when a game has ended.
@@ -913,6 +932,7 @@ public:
     //! In realtime this function gets called as often as possible after request/responses are received from the game
     //! gathering observation state.
     virtual void OnStep() final {
+        //printf(" ");
         Profiler onStepProfiler("onStep");
         //onStepProfiler.disable();
 
@@ -959,19 +979,24 @@ public:
             //Point2D cg = squads[i].center(this);
             s += strprintf("C:%.1f,%.1f S:%d\n", c.x, c.y, squads[i].army.size());
             for (int a = 0; a < squads[i].army.size(); a++) {
-                squads[i].army[a]->execute(this);
-                s += strprintf("%s %.1fs %Ix %c\n", UnitTypeToName(squads[i].army[a]->type),
-                               squads[i].army[a]->get(this)->weapon_cooldown,
-                               ((ArmyUnit*)(squads[i].army[a]))->targetWrap, squads[i].squadStates[squads[i].army[a]->self]);
-                DebugText(this,strprintf("%c", squads[i].squadStates[squads[i].army[a]->self]),
-                                      squads[i].army[a]->pos3D(this) + Point3D{s.size() * LETTER_DISP, 0.3, 0.5},
+                ArmyUnit* unit = (ArmyUnit*)squads[i].army[a];
+                unit->execute(this);
+                Point3D pos = unit->pos3D(this);
+                s += strprintf("%s %.1fs %Ix %c {%.1f,%.1f}\n", UnitTypeToName(unit->type),
+                    unit->get(this)->weapon_cooldown,
+                               ((ArmyUnit*)(unit))->targetWrap, squads[i].squadStates[unit->self], unit->statTargetPos.x, unit->statTargetPos.y);
+                DebugText(this,strprintf("%c:%c", squads[i].squadStates[unit->self], squads[i].subSquadStates[unit->self]),
+                                      pos,
                                       Color(210, 55, 55), 8);
+                
+                DebugLine(this, pos + Point3D{ 0,0,1 }, P3D(unit->statTargetPos) + Point3D{0,0,1}, {255, 150, 150});
+                DebugLine(this, pos + Point3D{ 0,0,1 }, P3D(unit->escapeLoc) + Point3D{ 0,0,1 }, { 10, 150, 255 });
             }
             s += '\n';
             DebugSphere(this,P3D(squads[i].coreCenter(this)), squads[i].armyballRadius());
             DebugSphere(this,P3D(squads[i].intermediateLoc), 0.5, {30,230, 210});
         }
-        DebugText(this,s, Point2D(0.71, 0.11), Color(1, 42, 212), 8);
+        DebugText(this, s, Point2D(0.71, 0.11), Color(1, 42, 212), 8);
 
         onStepProfiler.midLog("SquadExecute");
         #if MICRO_TEST == 0
@@ -1195,6 +1220,8 @@ public:
                 // add psi storm (more damage the more time it has left, prioritzed more since its constant dmag)
                 // add helion line, lurker line
                 for (Weapon w : weapons) {
+
+                    //TODO: REPLACE WITH WEAPON TO DAMAGELOCATION FUNCTION
                     DamageLocation d;
                     Damage damage;
                     for (DamageBonus bonus : w.damage_bonus) {
@@ -1241,13 +1268,13 @@ public:
 
         onStepProfiler.midLog("DamageGridUpdate");
 
-        grid();
+        //grid();
 
         //displaySpacialHashGrid();
 
-        //displayEnemyDamageGrid();
+        displayEnemyDamageGrid();
 
-        displayPrimordialStarNodes();
+        //displayPrimordialStarNodes();
 
         //pylonBuildingLoc();
         //listUnitWraps();

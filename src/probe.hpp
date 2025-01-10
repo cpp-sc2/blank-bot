@@ -173,9 +173,10 @@ public:
                         //    printf("%Ix compare %Ix\n", get(agent)->orders[0].target_unit_tag, target);
                         Tag harvest = getTargetTag(agent);
                         if (harvest == NullTag) {
+                            printf("NOT FOUND ANY MINERALS");
                             ignoreFrames = 100;
                         } else {
-                            agent->Actions()->UnitCommand(self, ABILITY_ID::HARVEST_GATHER, getTargetTag(agent));
+                            agent->Actions()->UnitCommand(self, ABILITY_ID::HARVEST_GATHER, harvest);
                         }
 
                     }

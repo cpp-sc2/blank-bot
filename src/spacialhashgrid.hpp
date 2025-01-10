@@ -59,7 +59,10 @@ void updateGrid(Agent *agent) {
                     }
                     if (activate) {
                         //imRef(grid, (int)(i + x), (int)(j + y)) = UnitWrappers();
-                        imRef(grid, (int)(i + x), (int)(j + y)).push_back(*it2);
+                        if ((int)(i + x) > 0 && (int)(i + x) < grid->width() && (int)(j + y) > 0 && (int)(j + y) < grid->height()) {
+                            imRef(grid, (int)(i + x), (int)(j + y)).push_back(*it2);
+                        }
+
 
                     }
                 }

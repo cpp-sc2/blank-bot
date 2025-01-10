@@ -166,9 +166,14 @@ int main(int argc, char* argv[])
         coordinator.SetParticipants({ CreateParticipant(Race::Protoss, &bot), CreateComputer(race, diff) });
 
         coordinator.LaunchStarcraft();
-        std::string maps[6] = { "5_13/Oceanborn513AIE.SC2Map",  "5_13/Equilibrium513AIE.SC2Map",
-                               "5_13/GoldenAura513AIE.SC2Map", "5_13/Gresvan513AIE.SC2Map",
-                               "5_13/HardLead513AIE.SC2Map",   "5_13/SiteDelta513AIE.SC2Map" };
+        //std::string maps[6] = { "5_13/Oceanborn513AIE.SC2Map",  "5_13/Equilibrium513AIE.SC2Map",
+        //                       "5_13/GoldenAura513AIE.SC2Map", "5_13/Gresvan513AIE.SC2Map",
+        //                       "5_13/HardLead513AIE.SC2Map",   "5_13/SiteDelta513AIE.SC2Map" };
+
+        std::string maps[6] = { "2024S4_Maps/AbyssalReefAIE.SC2Map",  "2024S4_Maps/AcropolisAIE.SC2Map",
+                               "2024S4_Maps/AutomatonAIE.SC2Map", "2024S4_Maps/EphemeronAIE.SC2Map",
+                               "2024S4_Maps/InterloperAIE.SC2Map",   "2024S4_Maps/ThunderbirdAIE.SC2Map" };
+
         int r = std::rand() % 6;
         printf("rand %d [%d %d %d %d %d %d] %d\n", r, std::rand(), std::rand(), std::rand(), std::rand(), std::rand(),
             std::rand(), RAND_MAX);

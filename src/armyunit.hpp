@@ -10,6 +10,7 @@
 #include "map2dFloat.hpp"
 #include "unitpriority.hpp"
 #include "debugging.hpp"
+#include "primordialstar.hpp"
 
 constexpr int BERTH = 1;
 
@@ -42,9 +43,9 @@ struct DamageNet {
 
 constexpr int escapePointChecks = 2;
 constexpr float escapePointWeight = 10.0;
-constexpr float escapePointRadius = 5.0;
+constexpr float escapePointRadius = 8.0;
 
-constexpr float squadExtraRadius = 1.0;
+constexpr float squadExtraRadius = 6.0;
 
 
 class Squad {
@@ -67,6 +68,8 @@ public:
     */
     std::map<Tag, char> squadStates; 
 
+    std::map<Tag, char> subSquadStates;
+
     float radius;
     int8_t ignoreFrames;
 
@@ -79,6 +82,7 @@ public:
         radius = 0;
         comp = Composition::Invalid;
         squadStates = std::map<Tag, char>();
+        subSquadStates = std::map<Tag, char>();
         ignoreFrames = 0;
         core = nullptr;
     }
@@ -285,11 +289,15 @@ private:
     UnitTypeData stats;
     bool is_flying;
     //int8_t targetFrames = 0;
-    Point2D escapeLoc;
+    
+    
     float escapeCost;
     float escapeDist;
 
 public:
+    Point2D escapeLoc;
+
+    Point2D statTargetPos;
     UnitWrapper* targetWrap;
     Squad* squad;
 
@@ -302,6 +310,7 @@ public:
         squad = &squads[0];
         is_flying = unit->is_flying; 
         squad->squadStates[self] = 'u';
+        squad->subSquadStates[self] = '.';
         escapeLoc = { 0,0 };
         escapeCost = -1;
         escapeDist = -1;
@@ -389,10 +398,35 @@ public:
         return potentialTargets;
     }
 
+    float calculatePathDamage(Point2D start, Point2D end, Agent* agent) {
+        float damageCost = 0.0F;
+        vector<Point2D> fullpath = PrimordialStar::getPath(start, end, radius, agent);
+        vector<Point2D> stepPoints = PrimordialStar::stepPointsAlongPath(fullpath, 1.0F);
+
+        if (fullpath.size() != 0) {
+            float l2 = 0;
+            for (int i = 0; i < fullpath.size() - 1; i++) {
+                l2 += Distance2D(fullpath[i], fullpath[i + 1]);
+                DebugLine(agent, AP3D(fullpath[i]) + Point3D{ 0,0,1 }, AP3D(fullpath[i + 1]) + Point3D{ 0,0,1 }, Colors::Green);
+            }
+            for (Point2D p : stepPoints) {
+                DamageLocation d = UnitManager::getRadiusAvgDamage(P2D(p) + Point2D{ 0.5F,0.5F }, radius, agent);
+                damageCost += UnitManager::getRelevantDamage(this, d, agent) * 0.2;
+
+                DebugSphere(agent, AP3D(p), 0.5, { 21,42,220 });
+                DebugText(agent, strprintf("%.2f", damageCost), AP3D(p) + Point3D{ 0,0,1 });
+            }
+            //DebugSphere(this, P3D(PrimordialStar::distanceAlongPath(path, 5.5)), 0.5, {21,42,120});
+        }
+        damageCost /= (PrimordialStar::getPathLength(fullpath) + 4.0F);
+        damageCost += UnitManager::getRelevantDamage(this, UnitManager::getRadiusAvgDamage(end, radius + 2.0F, agent), agent);
+        return damageCost;
+    }
+
     void updateRandomMinDamagePoint(Point2D position, float rad, int numChecks, Point2D posTarget, Agent* agent) {
         for (int i = 0; i < escapePointChecks; i++) {
             Profiler profil("escapePoint");
-            float damageCost = 0;
+            
             float theta = ((float)std::rand()) * 2 * 3.1415926 / RAND_MAX;
             float r = ((float)std::rand()) * rad / RAND_MAX;
             float x = std::cos(theta) * r;
@@ -400,7 +434,7 @@ public:
 
             Point2DI escapePoint{ int(position.x + x), int(position.y + y) };
             Point2D escapePointF{ position.x + x, position.y + y };
-            if (!agent->Observation()->IsPathable(escapePointF)) {
+            if (!Aux::checkPathable(escapePointF, agent)) {
                 i--;
                 continue;
             }
@@ -414,29 +448,49 @@ public:
             //}
             //vector<Point2DI> path = fullPath(pat);
             //profil.midLog("escapePoint-fullPath");
-            //for (Point2DI l : path) {
-            //    //profil.subScope();
-            //    DamageLocation d = UnitManager::getRadiusDamage(P2D(l) + Point2D{ 0.5F,0.5F }, radius, agent);
-            //    damageCost += UnitManager::getRelevantDamage(this, d, agent);
-            //    //profil.midLog("escapePoint-dmagCircle"); 
-            //}
-            //profil.midLog("escapePoint-dmagCircles");
 
-            damageCost = UnitManager::getRelevantDamage(this, UnitManager::getRadiusDamage(escapePointF, radius, agent), agent);
-            //printf("%.1f,%.1f eC:%.1f dC:%.1fPRE\n",x,y, escapeCost, damageCost);
+            float damageCost = calculatePathDamage(position, escapePointF, agent);
+
+            //vector<Point2D> fullpath = PrimordialStar::getPath(position, escapePointF, radius, agent);
+            //vector<Point2D> stepPoints = PrimordialStar::stepPointsAlongPath(fullpath, 1.0F);
+
+            //if (fullpath.size() != 0) {
+            //    float l2 = 0;
+            //    for (int i = 0; i < fullpath.size() - 1; i++) {
+            //        l2 += Distance2D(fullpath[i], fullpath[i + 1]);
+            //        DebugLine(agent, AP3D(fullpath[i]) + Point3D{ 0,0,1 }, AP3D(fullpath[i + 1]) + Point3D{ 0,0,1 }, Colors::Green);
+            //    }
+            //    for (Point2D p : stepPoints) {
+            //        DamageLocation d = UnitManager::getRadiusAvgDamage(P2D(p) + Point2D{ 0.5F,0.5F }, radius, agent);
+            //        damageCost += UnitManager::getRelevantDamage(this, d, agent) * 0.2;
+
+            //        DebugSphere(agent, AP3D(p), 0.5, { 21,42,220 });
+            //        DebugText(agent, strprintf("%.2f", damageCost), AP3D(p) + Point3D{0,0,1});
+            //    }
+            //    //DebugSphere(this, P3D(PrimordialStar::distanceAlongPath(path, 5.5)), 0.5, {21,42,120});
+            //}
+            //damageCost /= (PrimordialStar::getPathLength(fullpath) + 4.0F);
+            //damageCost += UnitManager::getRelevantDamage(this, UnitManager::getRadiusAvgDamage(escapePointF, radius + 2.0F, agent), agent);
+
+            printf("%.1f,%.1f eC:%.1f dC:%.1fPRE\n",x ,y , escapeCost, damageCost);
             DebugLine(agent,Point3D{ escapePointF.x,escapePointF.y,0 }, Point3D{ escapePointF.x,escapePointF.y, 53.0F });
+
             if (escapeCost == -1 || damageCost < escapeCost) {
                 escapeCost = damageCost;
                 escapeLoc = escapePointF;
+                //escapeDist = -1;
             }
             else {
                 if (escapeDist == -1) {
-                    escapeDist = agent->Query()->PathingDistance(escapeLoc, posTarget);
+                    //escapeDist = agent->Query()->PathingDistance(escapeLoc, posTarget);
+                    escapeDist = PrimordialStar::getPathLength(escapeLoc, posTarget, radius, agent);
                 }
-                float damageDist = agent->Query()->PathingDistance(escapePointF, posTarget);
+                //float damageDist = agent->Query()->PathingDistance(escapePointF, posTarget);
+                float damageDist = PrimordialStar::getPathLength(escapePointF, posTarget, radius, agent);
                 if (damageCost == escapeCost && damageDist < escapeDist) {
                     escapeCost = damageCost;
                     escapeLoc = escapePointF;
+                    //escapeDist = -1;
                 }
             }
             //printf("eC:%.1f dC:%.1fPOST\n", escapeCost, damageCost);
@@ -457,7 +511,8 @@ public:
             * k for attack joining
             * m for moving (with squad)
             */
-            char mode = '.';
+            //char mode = '.';
+            squad->subSquadStates[self] = '.';
             targetWrap = nullptr;
             Point2D position = pos(agent);
             Point2D posTarget = { 0,0 };
@@ -472,10 +527,12 @@ public:
                 //if(position)
                 posTarget = squad->coreCenter(agent);
                 if (get(agent)->weapon_cooldown > 0) {
-                    mode = 'j';
+                    //mode = 'j';
+                    squad->subSquadStates[self] = 'j';
                 }
                 else {
-                    mode = 'k';
+                    //mode = 'k';
+                    squad->subSquadStates[self] = 'k';
                 }
             }
             else {
@@ -512,45 +569,81 @@ public:
                 //        }
                 //    }
                 //}
-                UnitWrappers potentialTargets = getTargetEnemy(squad->targets, agent);
+                UnitWrappers personalTargets = SpacialHash::findInRadiusEnemy(position, Army::maxWeaponRadius(type), agent);
+                for (int i = 0; i < squad->targets.size(); i++) {
+                    if (std::find(personalTargets.begin(), personalTargets.end(), squad->targets[i]) == personalTargets.end()) {
+                        personalTargets.push_back(squad->targets[i]);
+                    }
+                }
+                UnitWrappers potentialTargets = getTargetEnemy(personalTargets, agent);
+                
                 if (potentialTargets.size() != 0) {
                     targetWrap = potentialTargets.front();
-                    float dTtoEnemy = Distance2D(pos(agent), targetWrap->pos(agent)) / getStats(agent).movement_speed;
+
+                    Weapon weap = getStats(agent).weapons[0];
+                    float damage = UnitManager::getRelevantDamage(targetWrap, weap, agent);
+                    for (int w = 1; w < getStats(agent).weapons.size(); w++) {
+                        float dmag = UnitManager::getRelevantDamage(targetWrap, getStats(agent).weapons[w], agent);
+                        if (dmag > damage) {
+                            damage = dmag;
+                            weap = getStats(agent).weapons[w];
+                        }
+                    }
+
+                    float damageRadius = radius + targetWrap->radius + weap.range;
+
+                    float dTtoEnemy = abs(Distance2D(pos(agent), targetWrap->pos(agent)) - damageRadius) / getStats(agent).movement_speed;
+                    printf("dto %f:wC %f\n", dTtoEnemy, get(agent)->weapon_cooldown);
                     if (dTtoEnemy >= get(agent)->weapon_cooldown) {
-                        mode = 'a';
+                        posTarget = targetWrap->pos(agent);
+                        //mode = 'a';
+                        squad->subSquadStates[self] = 'a';
                     }
                     else {
-                        posTarget = targetWrap->pos(agent);
-                        mode = 'r';
+                        posTarget = pos(agent);
+                        //mode = 'r';
+                        squad->subSquadStates[self] = 'r';
                     }
                 }
                 else {
                     if (withSquad(agent)) {
                         posTarget = squad->location;
+                        squad->subSquadStates[self] = 'r';
                     }
                     else{
                         posTarget = squad->coreCenter(agent);
+                        if (get(agent)->weapon_cooldown > 0) {
+                            //mode = 'j';
+                            squad->subSquadStates[self] = 'j';
+                        }
+                        else {
+                            //mode = 'k';
+                            squad->subSquadStates[self] = 'k';
+                        }
                     }
-                    mode = 'r';
+                    //mode = 'r';
                 }
             }
 
-            if (mode == 'a') {
+            if (squad->subSquadStates[self] == 'a') {
                 agent->Actions()->UnitCommand(self, ABILITY_ID::ATTACK, targetWrap->self);
                 escapeLoc = posTarget;
             }
-            else if (mode == 'k') {
+            else if (squad->subSquadStates[self] == 'k') {
                 agent->Actions()->UnitCommand(self, ABILITY_ID::ATTACK, posTarget);
                 escapeLoc = posTarget;
             }
-            else if (mode == 'j' || mode == 'r') {
+            else if (squad->subSquadStates[self] == 'j' || squad->subSquadStates[self] == 'r') {
                 //Point2D direction = UnitManager::weightedVector(this, 1, agent);
                 //Point2D location = position - direction * 2;
                 //escapeLoc = position;
-                if (escapeLoc.x == 0) {
+                if (escapeLoc.x <= 0 || escapeLoc.y <= 0) {
                     escapeLoc = posTarget;
                 }
-                escapeCost = UnitManager::getRelevantDamage(this, UnitManager::getRadiusDamage(escapeLoc, radius, agent), agent);
+
+                //escapeCost = UnitManager::getRelevantDamage(this, UnitManager::getRadiusDamage(escapeLoc, radius, agent), agent);
+                escapeCost = calculatePathDamage(position, escapeLoc, agent);
+
                 //for (int i = 0; i < escapePointChecks; i++) {
                 //    Profiler profil("escapePoint");
                 //    float damageCost = 0;
@@ -602,8 +695,9 @@ public:
                     updateRandomMinDamagePoint(position, escapePointRadius*2, escapePointChecks, posTarget, agent);
                 }
                 agent->Actions()->UnitCommand(self, ABILITY_ID::MOVE_MOVE, escapeLoc);
-                DebugLine(agent,Point3D{ escapeLoc.x,escapeLoc.y,0 }, Point3D{ escapeLoc.x,escapeLoc.y, 53.0F }, Colors::Purple);
+                DebugLine(agent,Point3D{ escapeLoc.x,escapeLoc.y, pos3D(agent).z}, Point3D{escapeLoc.x,escapeLoc.y, pos3D(agent).z + 1.5F}, Colors::Purple);
             }
+            statTargetPos = posTarget;
             ignoreFrames = 0;
         }
         //constexpr float extraRadius = 2.0F;

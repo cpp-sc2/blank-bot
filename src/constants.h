@@ -142,6 +142,10 @@ static bool checkPathable(int x, int y, Agent *agent) {
     return imRef(pathingMap, x, y) == 0;
 }
 
+static bool checkPathable(Point2D p, Agent* agent) {
+    return checkPathable(int(p.x), int(p.y), agent);
+}
+
 static bool isPylon(const Unit &unit) {
     UnitTypeID type = unit.unit_type;
     return (type == UNIT_TYPEID::PROTOSS_PYLON);

@@ -140,6 +140,17 @@ struct Damage {
             (damageval)(psionic + u.psionic) };
     }
 
+    Damage operator/(const float& u) {
+        return Damage{
+            (damageval)(normal / u),
+            (damageval)(armored / u),
+            (damageval)(light / u),
+            (damageval)(biological / u),
+            (damageval)(mechanical / u),
+            (damageval)(massive / u),
+            (damageval)(psionic / u) };
+    }
+
     void updateHighest(Damage dmag) {
         if (dmag.normal > normal) {
             normal = dmag.normal;
@@ -179,6 +190,13 @@ struct DamageLocation {
         return DamageLocation{
             (ground + u.ground),
             (air + u.air) 
+        };
+    }
+
+    DamageLocation operator/(const float& u) {
+        return DamageLocation{
+            (ground / u),
+            (air / u)
         };
     }
 
@@ -422,7 +440,7 @@ namespace UnitManager {
         }
     }
 
-    DamageLocation getRadiusDamage(Point2D pos, float radius, Agent* agent) {
+    DamageLocation getRadiusMaxDamage(Point2D pos, float radius, Agent* agent) {
         //Profiler profiler("DamageGridF");
         enemyDamageNetModify->clear();
 
@@ -443,6 +461,71 @@ namespace UnitManager {
                     d.updateHighest(imRef(enemyDamageNet, i, j));
                 }
             }
+        }
+        return d;
+    }
+
+    DamageLocation getRadiusAvgDamage(Point2D pos, float radius, Agent* agent) {
+        //Profiler profiler("DamageGridF");
+        enemyDamageNetModify->clear();
+
+        int xmin = std::max(int((pos.x - radius) * damageNetPrecision), 0);
+        int ymin = std::max(int((pos.y - radius) * damageNetPrecision), 0);
+        int xmax = std::min(int((pos.x + radius) * damageNetPrecision), enemyDamageNetModify->width());
+        int ymax = std::min(int((pos.y + radius) * damageNetPrecision), enemyDamageNetModify->height());
+
+        fillDamageModify(pos, radius, agent);
+
+        DamageLocation d;
+        int count = 0;
+        for (int i = xmin; i <= xmax; i++) {
+            for (int j = ymin; j <= ymax; j++) {
+                //DebugLine(agent,Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 0.0F }, Point3D{ (float)(i) / damageNetPrecision, (float)(j) / damageNetPrecision, 13.0F });
+                if (imRef(enemyDamageNetModify, i, j)) {
+                    //DamageLocation pointDmag = imRef(enemyDamageNet, i, j);
+                    //d.updateHighest(imRef(enemyDamageNet, i, j));
+                    d += imRef(enemyDamageNet, i, j);
+                    count++;
+                }
+            }
+        }
+        return (d/((float)count));
+    }
+
+    DamageLocation WeaponToDamageLocation(Weapon w) {
+        DamageLocation d;
+        Damage damage;
+        for (DamageBonus bonus : w.damage_bonus) {
+            if (bonus.attribute == Attribute::Light) {
+                damage.light += bonus.bonus / w.speed * 100;
+            }
+            else if (bonus.attribute == Attribute::Armored) {
+                damage.armored += bonus.bonus / w.speed * 100;
+            }
+            else if (bonus.attribute == Attribute::Biological) {
+                damage.biological += bonus.bonus / w.speed * 100;
+            }
+            else if (bonus.attribute == Attribute::Mechanical) {
+                damage.mechanical += bonus.bonus / w.speed * 100;
+            }
+            else if (bonus.attribute == Attribute::Massive) {
+                damage.massive += bonus.bonus / w.speed * 100;
+            }
+            else if (bonus.attribute == Attribute::Psionic) {
+                damage.psionic += bonus.bonus / w.speed * 100;
+            }
+            else {
+                printf("ATTRIBUTE NOT PROGRAMMED %d\n", bonus.attribute);
+            }
+        }
+
+        if (w.type == Weapon::TargetType::Air || w.type == Weapon::TargetType::Any) {
+            d.air.normal = w.damage_ / w.speed * 100;
+            d.air += damage;
+        }
+        if (w.type == Weapon::TargetType::Ground || w.type == Weapon::TargetType::Any) {
+            d.ground.normal = w.damage_ / w.speed * 100;
+            d.ground += damage;
         }
         return d;
     }
@@ -503,6 +586,10 @@ namespace UnitManager {
 
         }
         return damage;
+    }
+
+    float getRelevantDamage(UnitWrapper* target, Weapon w, Agent* agent) {
+        return getRelevantDamage(target, WeaponToDamageLocation(w), agent);
     }
     
     float getPointDamage(int i, int j, UnitWrapper* unitWrap, Agent* agent) {

@@ -274,10 +274,6 @@ namespace PrimordialStar {
 		calculateConnection(endNode, agent);
 
 		bool* visited = new bool[basePathNodes.size()];
-		//visited.reserve(basePathNodes.size());
-		//for (int i = 0; i < basePathNodes.size(); i++) {
-		//	visited[i] = false;
-		//}
 		memset(visited, 0, basePathNodes.size() * sizeof(bool));
 
 		vector<Point2D> points;
@@ -337,5 +333,105 @@ namespace PrimordialStar {
 		
 		//printf("SOMETHING WENT WRONG\n");
 		return points;
+	}
+
+	float getPathLength(Point2D start, Point2D end, float radius, Agent* agent) {
+		PathNode* startNode = new PathNode(start, INVALID);
+		PathNode* operatingNode = startNode;
+		PathNode* endNode = new PathNode(end, INVALID);
+
+		calculateConnection(startNode, agent);
+		calculateConnection(endNode, agent);
+
+		bool* visited = new bool[basePathNodes.size()];
+		memset(visited, 0, basePathNodes.size() * sizeof(bool));
+
+		float length = FLT_MAX;
+
+		if (startNode->connected.size() == 0 || endNode->connected.size() == 0) {
+			//length = -1;
+		}
+		else {
+			std::priority_queue<StarNode, vector<StarNode>, greater<float>> starNodes;
+			starNodes.push(StarNode(operatingNode->id, 0, Distance2D(start, end)));
+			visited[operatingNode->id] = true;
+			bool found = false;
+			for (int cycles = 0; cycles < 10000; cycles++) {
+				if (starNodes.size() == 0) {
+					break;
+				}
+				StarNode star = starNodes.top();
+				starNodes.pop();
+				operatingNode = basePathNodes[star.pathNode];
+				Point2D currentPos = operatingNode->position(radius);
+				for (int i = 0; i < operatingNode->connected.size(); i++) {
+					int subNodeID = operatingNode->connected[i];
+					if (visited[subNodeID]) {
+						continue;
+					}
+					Point2D nextPos = basePathNodes[subNodeID]->position(radius);
+					starNodes.push(StarNode(subNodeID, star.g + Distance2D(currentPos, nextPos), Distance2D(nextPos, end)));
+					visited[subNodeID] = true;
+
+					//DebugText(agent, strprintf("%.1f,%.1f", star.g + Distance2D(currentPos, nextPos), Distance2D(nextPos, end)), AP3D(nextPos));
+
+					if (operatingNode->connected[i] == endNode->id) {
+						length = star.g + Distance2D(currentPos, nextPos);
+						found = true;
+						break;
+					}
+				}
+				if (found) {
+					break;
+				}
+			}
+		}
+		delete[] visited;
+		basePathNodes.pop_back();
+		basePathNodes.pop_back();
+
+		return length;
+	}
+
+	float getPathLength(vector<Point2D> path) {
+		if (path.size() == 0) return 0.0F;
+		float travelled = 0;
+		for (int i = 0; i < path.size() - 1; i++) {
+			travelled += Distance2D(path[i], path[i + 1]);
+		}
+		return travelled;
+	}
+
+	Point2D distanceAlongPath(vector<Point2D> path, float distance) {
+		if (path.size() == 0) return { 0,0 };
+		float travelled = 0;
+		for (int i = 0; i < path.size() - 1; i++) {
+			float dist = Distance2D(path[i], path[i + 1]);
+			if ((travelled + dist) < distance) {
+				travelled += dist;
+			}
+			else {
+				Point2D dir = normalize((path[i + 1] - path[i]));
+				return path[i] + (dir * (distance - travelled));
+			}
+		}
+		return { 0,0 };
+	}
+
+	vector<Point2D> stepPointsAlongPath(vector<Point2D> path, float distance) {
+		if (path.size() == 0) return vector<Point2D>();
+		int siz = int(400 / distance);
+		vector<Point2D> midpath;
+		for (int i = 1; i < siz; i++) {
+			Point2D ne = distanceAlongPath(path, distance * i);
+			
+			if (ne != Point2D{0, 0}) {
+				midpath.push_back(ne);
+			}
+			else {
+				break;
+			}
+		}
+		return midpath;
 	}
 }
