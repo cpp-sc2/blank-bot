@@ -478,19 +478,20 @@ public:
             if (escapeCost == -1 || damageCost < escapeCost) {
                 escapeCost = damageCost;
                 escapeLoc = escapePointF;
-                //escapeDist = -1;
+                escapeDist = -1;
             }
             else {
-                if (escapeDist == -1) {
-                    //escapeDist = agent->Query()->PathingDistance(escapeLoc, posTarget);
-                    escapeDist = PrimordialStar::getPathLength(escapeLoc, posTarget, radius, agent);
-                }
+                //if (escapeDist == -1) {
+                //    //escapeDist = agent->Query()->PathingDistance(escapeLoc, posTarget);
+                //    escapeDist = PrimordialStar::getPathLength(escapeLoc, posTarget, radius, agent);
+                //}
+                escapeDist = PrimordialStar::getPathLength(escapeLoc, posTarget, radius, agent);
                 //float damageDist = agent->Query()->PathingDistance(escapePointF, posTarget);
                 float damageDist = PrimordialStar::getPathLength(escapePointF, posTarget, radius, agent);
                 if (damageCost == escapeCost && damageDist < escapeDist) {
                     escapeCost = damageCost;
                     escapeLoc = escapePointF;
-                    //escapeDist = -1;
+                    escapeDist = -1;
                 }
             }
             //printf("eC:%.1f dC:%.1fPOST\n", escapeCost, damageCost);
