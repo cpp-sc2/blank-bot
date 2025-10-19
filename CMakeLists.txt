@@ -20,6 +20,7 @@ endif ()
 project(BlankBot)
 
 include(FetchContent)
+set(FETCHCONTENT_QUIET FALSE)
 
 option(BUILD_FOR_LADDER "Create build for the AIArena ladder" OFF)
 

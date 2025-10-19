@@ -13,6 +13,7 @@ FetchContent_Declare(
     cpp_sc2
     GIT_REPOSITORY https://github.com/cpp-sc2/cpp-sc2.git
     GIT_TAG v2.0.0
+    GIT_PROGRESS TRUE
 )
 FetchContent_MakeAvailable(cpp_sc2)
 
