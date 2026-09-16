@@ -24,7 +24,7 @@ jobs:
         os: [windows-latest, macos-latest, ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
 
@@ -32,13 +32,13 @@ jobs:
         run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build
-        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel 2
+        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel
 
   ladder_build:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: recursive
 
@@ -46,4 +46,4 @@ jobs:
         run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0
 
       - name: Build
-        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel 2
+        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel
