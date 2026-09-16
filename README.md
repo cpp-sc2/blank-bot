@@ -152,7 +152,7 @@ Cross compiling for Windows under WSL2 is supported through `cpp-sc2`. See the `
 ### Game client version
 By default, the API assumes the latest version of the game client. The assumed version can be found in cmake's output, e.g.:
 ```bash
-$ cmake -B build grep 'SC2 version'
+$ cmake -B build | grep "SC2 version"
 Target SC2 version: 5.0.5
 ...
 ```
