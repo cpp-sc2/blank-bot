@@ -24,8 +24,8 @@ set(FETCHCONTENT_QUIET FALSE)
 
 option(BUILD_FOR_LADDER "Create build for the AIArena ladder" OFF)
 
-# Build with c++17 support, required by sc2api
-set(CMAKE_CXX_STANDARD 17)
+# Build with c++20 support, required by sc2api
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Specify output directories
