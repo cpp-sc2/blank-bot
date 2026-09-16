@@ -1,6 +1,9 @@
 # blank-bot
 
-[![Build](https://github.com/cpp-sc2/blank-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/cpp-sc2/blank-bot/actions/workflows/ci.yml)
+[![GitHub](https://img.shields.io/github/license/cpp-sc2/blank-bot)](https://github.com/cpp-sc2/blank-bot/blob/master/LICENSE)
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-green.svg)](https://isocpp.org/std/the-standard)
+[![Build Status](https://github.com/cpp-sc2/blank-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/cpp-sc2/blank-bot/actions/workflows/ci.yml)
+[![Join the chat in Discord: https://discord.gg/YurYAgHRSw](https://img.shields.io/badge/Discord-Chat!-brightgreen.svg)](https://discord.gg/YurYAgHRSw)
 
 Starter bot for StarCraft II with integrated cpp-sc2.
 
