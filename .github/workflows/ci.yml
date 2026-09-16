@@ -36,11 +36,11 @@ jobs:
           submodules: recursive
 
       - name: Configure
-        run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -B "${{env.BUILD_DIR}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build
         shell: bash
-        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel $(${{ matrix.cores_cmd }})
+        run: cmake --build "${{env.BUILD_DIR}}" --config ${{env.BUILD_TYPE}} --parallel $(${{ matrix.cores_cmd }})
 
   ladder_build:
     runs-on: ubuntu-22.04
@@ -51,7 +51,7 @@ jobs:
           submodules: recursive
 
       - name: Configure
-        run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0
+        run: cmake -B "${{env.BUILD_DIR}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0
 
       - name: Build
-        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel $(nproc)
+        run: cmake --build "${{env.BUILD_DIR}}" --config ${{env.BUILD_TYPE}} --parallel $(nproc)
