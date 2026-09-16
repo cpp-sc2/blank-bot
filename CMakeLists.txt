@@ -39,7 +39,7 @@ if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
 endif ()
 
-list(APPEND CMAKE_MODULE_PATH thirdparty/cmake)
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/thirdparty/cmake")
 
 # cpp-sc2 dependency
 include(cpp_sc2)
