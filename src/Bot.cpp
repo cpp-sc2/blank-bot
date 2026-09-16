@@ -4,63 +4,62 @@
 
 #include "Bot.h"
 
-#include <sc2api/sc2_common.h>
+#include <sc2api/sc2_client.h>
+#include <sc2api/sc2_typeenums.h>
 #include <sc2api/sc2_unit.h>
 
 #include <iostream>
+#include <string>
+#include <vector>
 
-void Bot::OnGameStart()
+auto Bot::OnGameStart() -> void
 {
-    std::cout << "New game started!" << std::endl;
+    std::cout << "New game started!\n";
 }
 
-void Bot::OnGameEnd()
+auto Bot::OnGameEnd() -> void
 {
-    std::cout << "Game over!" << std::endl;
+    std::cout << "Game over!\n";
 }
 
-void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_)
+auto Bot::OnBuildingConstructionComplete(const sc2::Unit* building) -> void
 {
-    std::cout << sc2::UnitTypeToName(building_->unit_type) <<
-        "(" << building_->tag << ") constructed" << std::endl;
+    std::cout << sc2::UnitTypeToName(building->unit_type) << " (" << building->tag << ") constructed\n";
 }
 
-void Bot::OnStep()
+auto Bot::OnStep() -> void
 {
-    std::cout << "OnStep" << std::endl;
+    std::cout << "OnStep\n";
 }
 
-void Bot::OnUnitCreated(const sc2::Unit* unit_)
+auto Bot::OnUnitCreated(const sc2::Unit* unit) -> void
 {
-    std::cout << sc2::UnitTypeToName(unit_->unit_type) <<
-        "(" << unit_->tag << ") was created" << std::endl;
+    std::cout << sc2::UnitTypeToName(unit->unit_type) << " (" << unit->tag << ") was created\n";
 }
 
-void Bot::OnUnitIdle(const sc2::Unit* unit_)
+auto Bot::OnUnitIdle(const sc2::Unit* unit) -> void
 {
-    std::cout << sc2::UnitTypeToName(unit_->unit_type) <<
-         "(" << unit_->tag << ") is idle" << std::endl;
+    std::cout << sc2::UnitTypeToName(unit->unit_type) << " (" << unit->tag << ") is idle\n";
 }
 
-void Bot::OnUnitDestroyed(const sc2::Unit* unit_)
+auto Bot::OnUnitDestroyed(const sc2::Unit* unit) -> void
 {
-    std::cout << sc2::UnitTypeToName(unit_->unit_type) <<
-         "(" << unit_->tag << ") was destroyed" << std::endl;
+    std::cout << sc2::UnitTypeToName(unit->unit_type) << " (" << unit->tag << ") was destroyed\n";
 }
 
-void Bot::OnUpgradeCompleted(sc2::UpgradeID id_)
+auto Bot::OnUpgradeCompleted(sc2::UpgradeID id) -> void
 {
-    std::cout << sc2::UpgradeIDToName(id_) << " completed" << std::endl;
+    std::cout << sc2::UpgradeIDToName(id) << " completed\n";
 }
 
-void Bot::OnError(const std::vector<sc2::ClientError>& client_errors,
-        const std::vector<std::string>& protocol_errors)
+auto Bot::OnError(const std::vector<sc2::ClientError>& client_errors, const std::vector<std::string>& protocol_errors)
+    -> void
 {
-    for (const auto i : client_errors) {
-        std::cerr << "Encountered client error: " <<
-            static_cast<int>(i) << std::endl;
+    for (const auto& err : client_errors) {
+        std::cerr << "Encountered client error: " << static_cast<int>(err) << '\n';
     }
 
-    for (const auto& i : protocol_errors)
-        std::cerr << "Encountered protocol error: " << i << std::endl;
+    for (const auto& i : protocol_errors) {
+        std::cerr << "Encountered protocol error: " << i << '\n';
+    }
 }

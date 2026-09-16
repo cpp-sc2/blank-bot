@@ -27,7 +27,9 @@ Starter bot for StarCraft II with integrated cpp-sc2.
 
 ## Support
 
-Feel free to post questions on the unofficial StarCraft II AI Discord server. [Invite Link](https://discordapp.com/invite/Emm5Ztz)
+If you have any questions, feel free to send a message over the
+[#cpp](https://discord.com/channels/350289306763657218/350289506068463618)
+channel of the [AI Arena](https://discord.gg/YurYAgHRSw) Discord server.
 
 ## Build instructions
 

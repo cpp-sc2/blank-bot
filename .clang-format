@@ -1,0 +1,27 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+BreakBeforeBraces: Linux
+ColumnLimit: 120
+IndentWidth: 4
+AccessModifierOffset: -4
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Empty
+AllowShortLoopsOnASingleLine: false
+DerivePointerAlignment: false
+IndentCaseLabels: false
+InsertNewlineAtEOF: true
+LineEnding: LF
+PointerAlignment: Left
+SpacesBeforeTrailingComments: 1
+Standard: Latest
+---
+Language: Proto
+DisableFormat: true
+---
+Language: Json
+BasedOnStyle: Google
+ColumnLimit: 120
+IndentWidth: 2
