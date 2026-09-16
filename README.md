@@ -204,6 +204,6 @@ cmake --build build --parallel $(nproc --ignore=1)
 ```
 
 ## License
-Copyright (c) 2021-2024 Alexander Kurbatov
+Copyright (c) 2021-2026 Alexander Kurbatov
 
 Licensed under the [MIT license](LICENSE).
