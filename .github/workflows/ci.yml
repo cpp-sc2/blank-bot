@@ -18,10 +18,17 @@ env:
 
 jobs:
   basic_build:
+    name: basic_build (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            cores_cmd: echo $NUMBER_OF_PROCESSORS
+          - os: macos-latest
+            cores_cmd: sysctl -n hw.logicalcpu
+          - os: ubuntu-latest
+            cores_cmd: nproc
 
     steps:
       - uses: actions/checkout@v7.0.1
@@ -32,7 +39,8 @@ jobs:
         run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build
-        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel
+        shell: bash
+        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel $(${{ matrix.cores_cmd }})
 
   ladder_build:
     runs-on: ubuntu-22.04
@@ -46,4 +54,4 @@ jobs:
         run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_FOR_LADDER=ON -DSC2_VERSION=4.10.0
 
       - name: Build
-        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel
+        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel $(nproc)
