@@ -33,13 +33,13 @@ channel of the [AI Arena](https://discord.gg/YurYAgHRSw) Discord server.
 
 ## Build instructions
 
-> :construction: This project requires a compiler with C++17 support.
+> :construction: This project requires a compiler with C++20 support.
 
 1. Before proceeding further download the [actual map pack](https://aiarena.net/wiki/maps/).
 
 1. Put the downloaded maps into the `Maps` folder (create it if the folder doesn't exist):
    * Windows: `C:\Program Files\StarCraft II\Maps`
-   * OS X: `/Applications/StarCraft II/Maps`
+   * macOS: `/Applications/StarCraft II/Maps`
    * Linux: anywhere.
 
 ### Windows
@@ -48,7 +48,7 @@ For building for Windows under WSL2, see [WSL2 Support](#wsl2-support).
 
 1. Install [CMake](https://cmake.org/download/).
 
-1. Download and install Visual Studio ([2017](https://www.visualstudio.com/downloads/) or newer).
+1. Download and install Visual Studio ([2022](https://www.visualstudio.com/downloads/) or newer).
 
 1. Get the project.
 
@@ -104,20 +104,20 @@ For building for Windows under WSL2, see [WSL2 Support](#wsl2-support).
 1. Build the project.
 
    ```bash
-   cmake --build build --parallel $(nproc)
+   cmake --build build --parallel $(sysctl -n hw.logicalcpu)
    ```
 
 1. Launch the bot with the specified absolute path to a SC2 map, e.g.:
 
    ```bash
-   ./build/bin/BlankBot "/home/alkurbatov/Ladder2019Season3/AcropolisLE.SC2Map"
+   ./build/bin/BlankBot "/Users/alkurbatov/Ladder2019Season3/AcropolisLE.SC2Map"
    ```
 
 ### Linux
 
 1. Install [CMake](https://cmake.org/download/).
 
-1. Install `gcc-c++`.
+1. Install a C++ compiler (`g++` on Debian/Ubuntu, `gcc-c++` on Fedora/RHEL).
 
 1. Install the `make` utility.
 
@@ -155,7 +155,7 @@ Cross compiling for Windows under WSL2 is supported through `cpp-sc2`. See the `
 By default, the API assumes the latest version of the game client. The assumed version can be found in cmake's output, e.g.:
 ```bash
 $ cmake -B build | grep "SC2 version"
-Target SC2 version: 5.0.5
+Target SC2 version: 5.0.14
 ...
 ```
 
@@ -199,10 +199,10 @@ remove the `build` folder or the `CMakeCache.txt` file, or explicitly re-specify
 
 ### Build freezes (Linux or macOS)
 
-If project compilation freezes, decrease nproc to 1 or more, e.g.:
+If project compilation freezes, decrease the number of parallel jobs, e.g.:
 
 ``` bash
-cmake --build build --parallel $(nproc --ignore=1)
+cmake --build build --parallel 2
 ```
 
 ## License
