@@ -5,29 +5,31 @@
 #pragma once
 
 #include <sc2api/sc2_agent.h>
+#include <sc2api/sc2_client.h>
+
+#include <string>
+#include <vector>
 
 // The main bot class.
-struct Bot: sc2::Agent
-{
+struct Bot final : sc2::Agent {
     Bot() = default;
 
- private:
-    void OnGameStart() final;
+    auto OnGameStart() -> void final;
 
-    void OnGameEnd() final;
+    auto OnGameEnd() -> void final;
 
-    void OnStep() final;
+    auto OnStep() -> void final;
 
-    void OnBuildingConstructionComplete(const sc2::Unit* building_) final;
+    auto OnBuildingConstructionComplete(const sc2::Unit* building) -> void final;
 
-    void OnUnitCreated(const sc2::Unit* unit_) final;
+    auto OnUnitCreated(const sc2::Unit* unit) -> void final;
 
-    void OnUnitIdle(const sc2::Unit* unit_) final;
+    auto OnUnitIdle(const sc2::Unit* unit) -> void final;
 
-    void OnUnitDestroyed(const sc2::Unit* unit_) final;
+    auto OnUnitDestroyed(const sc2::Unit* unit) -> void final;
 
-    void OnUpgradeCompleted(sc2::UpgradeID id_) final;
+    auto OnUpgradeCompleted(sc2::UpgradeID id) -> void final;
 
-    void OnError(const std::vector<sc2::ClientError>& client_errors,
-        const std::vector<std::string>& protocol_errors = {}) final;
+    auto OnError(const std::vector<sc2::ClientError>& client_errors,
+                 const std::vector<std::string>& protocol_errors = {}) -> void final;
 };
