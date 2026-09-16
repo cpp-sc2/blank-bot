@@ -24,7 +24,7 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            cores_cmd: echo $NUMBER_OF_PROCESSORS
+            cores_cmd: echo $env:NUMBER_OF_PROCESSORS
           - os: macos-latest
             cores_cmd: sysctl -n hw.logicalcpu
           - os: ubuntu-latest
@@ -39,7 +39,6 @@ jobs:
         run: cmake -B "${{env.BUILD_DIR}}" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build
-        shell: bash
         run: cmake --build "${{env.BUILD_DIR}}" --config ${{env.BUILD_TYPE}} --parallel $(${{ matrix.cores_cmd }})
 
   ladder_build:
