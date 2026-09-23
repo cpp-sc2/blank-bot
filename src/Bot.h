@@ -14,22 +14,22 @@
 struct Bot final : sc2::Agent {
     Bot() = default;
 
-    auto OnGameStart() -> void final;
+    void OnGameStart() final;
 
-    auto OnGameEnd() -> void final;
+    void OnGameEnd() final;
 
-    auto OnStep() -> void final;
+    void OnStep() final;
 
-    auto OnBuildingConstructionComplete(const sc2::Unit* building) -> void final;
+    void OnBuildingConstructionComplete(const sc2::Unit* building) final;
 
-    auto OnUnitCreated(const sc2::Unit* unit) -> void final;
+    void OnUnitCreated(const sc2::Unit* unit) final;
 
-    auto OnUnitIdle(const sc2::Unit* unit) -> void final;
+    void OnUnitIdle(const sc2::Unit* unit) final;
 
-    auto OnUnitDestroyed(const sc2::Unit* unit) -> void final;
+    void OnUnitDestroyed(const sc2::Unit* unit) final;
 
-    auto OnUpgradeCompleted(sc2::UpgradeID id) -> void final;
+    void OnUpgradeCompleted(sc2::UpgradeID id) final;
 
-    auto OnError(const std::vector<sc2::ClientError>& client_errors,
-                 const std::vector<std::string>& protocol_errors = {}) -> void final;
+    void OnError(const std::vector<sc2::ClientError>& client_errors,
+                 const std::vector<std::string>& protocol_errors = {}) final;
 };

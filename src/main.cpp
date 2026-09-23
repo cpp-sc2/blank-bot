@@ -32,7 +32,7 @@ struct Options {
     std::string OpponentId;
 };
 
-auto ParseInt(std::string_view value, int32_t& dst) -> bool
+bool ParseInt(std::string_view value, int32_t& dst)
 {
     const char* const first = value.data();
     const char* const last = first + value.size();
@@ -41,7 +41,7 @@ auto ParseInt(std::string_view value, int32_t& dst) -> bool
     return ec == std::errc{} && ptr == last;
 }
 
-auto ParseArguments(int argc, char** argv) -> Options
+Options ParseArguments(int argc, char** argv)
 {
     Options options;
 
@@ -97,7 +97,7 @@ auto ParseArguments(int argc, char** argv) -> Options
 
 } // namespace
 
-auto main(int argc, char* argv[]) -> int
+int main(int argc, char* argv[])
 try {
     auto options = ParseArguments(argc, argv);
 
@@ -133,7 +133,7 @@ try {
 
 #else
 
-auto main(int argc, char* argv[]) -> int
+int main(int argc, char* argv[])
 try {
     if (argc < 2) {
         std::cerr << "Provide either name of the map file or path to it!\n";
